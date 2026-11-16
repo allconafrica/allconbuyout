@@ -18,12 +18,12 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     }
-    /* Sleek Left-Border Status Accent Bars (Matching Screenshot) */
-    .status-card-YELLOW { background-color: rgba(24, 24, 27, 0.9); border-left: 5px solid #eab308; }
-    .status-card-ORANGE { background-color: rgba(24, 24, 27, 0.9); border-left: 5px solid #f97316; }
-    .status-card-GREEN  { background-color: rgba(24, 24, 27, 0.9); border-left: 5px solid #22c55e; }
-    .status-card-PINK   { background-color: rgba(24, 24, 27, 0.9); border-left: 5px solid #ec4899; }
-    .status-card-CANCELLED { background-color: rgba(24, 24, 27, 0.5); border-left: 5px solid #71717a; opacity: 0.55; }
+    /* Explicit Left-Border Status Accent Bars */
+    .status-bar-YELLOW { border-left: 5px solid #eab308 !important; }
+    .status-bar-ORANGE { border-left: 5px solid #f97316 !important; }
+    .status-bar-GREEN  { border-left: 5px solid #22c55e !important; }
+    .status-bar-PINK   { border-left: 5px solid #ec4899 !important; }
+    .status-bar-CANCELLED { border-left: 5px solid #71717a !important; opacity: 0.55; }
   </style>
 </head>
 <body class="bg-[#0b0b0c] text-zinc-100 font-sans min-h-screen flex flex-col">
@@ -185,7 +185,7 @@
     </div>
   </div>
 
-  <!-- EDIT LINE ITEM MODAL (ADMIN ONLY - NORMAN OR NORLENE) -->
+  <!-- EDIT LINE ITEM MODAL (ADMIN ONLY) -->
   <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -242,7 +242,7 @@
     </div>
   </div>
 
-  <!-- STORES RECEIVE MODAL (WITH NATIVE CAMERA / GALLERY PHOTO PICKER) -->
+  <!-- STORES RECEIVE MODAL -->
   <div id="receive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-md w-full p-5 space-y-4 border-2 border-emerald-600/50">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -284,13 +284,13 @@
       </div>
 
       <form onsubmit="handleAddUser(event)" class="grid grid-cols-2 gap-2 text-xs bg-zinc-900 p-3 rounded-xl">
-        <input type="text" id="new-u-name" required placeholder="Name (e.g. Norlene)" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+        <input type="text" id="new-u-name" required placeholder="Name (e.g. Bongani)" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
         <input type="text" id="new-u-pass" required placeholder="Password" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
         <select id="new-u-role" class="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
           <option value="ADMIN">ADMIN (Full Edit / Buyers)</option>
           <option value="STORES">STORES (View & Receive Only)</option>
         </select>
-        <input type="email" id="new-u-email" placeholder="Buyer Email" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+        <input type="email" id="new-u-email" placeholder="Buyer Email (if Admin)" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
         <button type="submit" class="col-span-2 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg">Add User Account</button>
       </form>
 
@@ -469,7 +469,7 @@
               ` : ''}
             </div>
 
-            <!-- MATERIAL LINE ITEMS WITH LEFT-BORDER STATUS ACCENT -->
+            <!-- MATERIAL LINE ITEMS WITH STABLE STATUS BARS -->
             <div class="divide-y divide-zinc-800/80">
               ${orderedLines.map(line => {
                 const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
@@ -479,7 +479,6 @@
                   </a>
                 `).join('');
 
-                // Render delivery note photos/links if uploaded
                 const dnLinks = (line.dnLink || '').split(',').map(l => l.trim()).filter(Boolean);
                 const dnButtons = dnLinks.map((url, idx) => `
                   <a href="${url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg transition">
@@ -494,7 +493,7 @@
                 if (line.status === 'PINK') statusLabel = 'FLOOR / OFF-CUTS';
 
                 return `
-                  <div class="p-4 status-card-${line.status} flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                  <div class="p-4 bg-zinc-900/90 border border-zinc-800 status-bar-${line.status} flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                     <div class="space-y-1.5 w-full">
                       <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-white uppercase tracking-wider border border-zinc-700">${statusLabel}</span>
@@ -687,7 +686,6 @@
 
     function closeReceiveModal() { document.getElementById('receive-modal').classList.add('hidden'); }
 
-    // Read selected photos from phone camera/gallery as base64 and send to Apps Script
     async function submitReceive(e) {
       e.preventDefault();
       const id = document.getElementById('rec-id').value;
