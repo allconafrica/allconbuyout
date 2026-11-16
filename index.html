@@ -39,7 +39,7 @@
       <form onsubmit="handleLogin(event)" class="space-y-3 text-sm">
         <div>
           <label class="block text-xs font-bold text-zinc-400 mb-1">USERNAME</label>
-          <input type="text" id="login-user" required placeholder="e.g. Norman, Norlene, or Bongani" class="no-caps w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+          <input type="text" id="login-user" required placeholder="Name or Email" class="no-caps w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
         </div>
         <div>
           <label class="block text-xs font-bold text-zinc-400 mb-1">PASSWORD</label>
@@ -148,11 +148,11 @@
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-zinc-900/80 p-3 rounded-xl border border-zinc-800">
           <div>
             <label class="block font-bold text-zinc-400 mb-1">CLIENT</label>
-            <input type="text" id="proj-client" required placeholder="EMERALD" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+            <input type="text" id="proj-client" required placeholder="PROJECT NAME" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
           </div>
           <div>
             <label class="block font-bold text-zinc-400 mb-1">MIL NO.</label>
-            <input type="text" id="proj-mil" required placeholder="MIL26.008" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+            <input type="text" id="proj-mil" required placeholder="MIL NUMBER" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
           </div>
           <div>
             <label class="block font-bold text-zinc-400 mb-1">ITEM NAME</label>
@@ -160,7 +160,7 @@
           </div>
           <div>
             <label class="block font-bold text-zinc-400 mb-1">AC NO.</label>
-            <input type="text" id="proj-ac" required placeholder="AC3058" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+            <input type="text" id="proj-ac" required placeholder="AC NUMBER" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
           </div>
           <div>
             <label class="block font-bold text-zinc-400 mb-1">BUYER</label>
@@ -218,16 +218,16 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-zinc-400 mb-1">SUPPLIER</label>
-            <input type="text" id="edit-supplier" placeholder="e.g. STEELCORP" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+            <input type="text" id="edit-supplier" placeholder="SUPPLIER NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
           <div>
             <label class="block font-bold text-zinc-400 mb-1">POC (CONTACT PERSON)</label>
-            <input type="text" id="edit-poc" placeholder="e.g. MICHAEL" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+            <input type="text" id="edit-poc" placeholder="POC NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
         </div>
         <div>
           <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
-          <input type="text" id="edit-po" placeholder="e.g. PO19254" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+          <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
         </div>
         <div>
           <label class="block font-bold text-zinc-400 mb-1">NEXTCLOUD PO LINK(S)</label>
@@ -258,7 +258,7 @@
         <input type="hidden" id="rec-id">
         <div>
           <label class="block font-bold text-zinc-300 mb-1">DELIVERY NOTE / GRN NUMBER *</label>
-          <input type="text" id="rec-dn" required placeholder="e.g. DN-88412" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-sm font-bold">
+          <input type="text" id="rec-dn" required placeholder="e.g. DN-12345" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-sm font-bold">
         </div>
         <div>
           <label class="block font-bold text-zinc-300 mb-1">SNAP PHOTO OR SELECT FROM GALLERY (Multiple Allowed)</label>
@@ -570,7 +570,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div class="sm:col-span-2">
             <label class="block text-[10px] font-bold text-zinc-400">MATERIAL DESCRIPTION *</label>
-            <input type="text" required placeholder="e.g. FLINGER CONE" class="l-desc w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+            <input type="text" required placeholder="PLATE MATERIAL" class="l-desc w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
           </div>
           <div>
             <label class="block text-[10px] font-bold text-zinc-400">INITIAL STATUS</label>
