@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0b0c">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>ALLCON - Material Purchasing & Receiving</title>
+  <title>ALLCON - Material Purchasing & Expediting Tracker</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23121215%22/><path d=%22M30 18h40a6 6 0 016 6v64a6 6 0 01-6 6H30a6 6 0 01-6-6V24a6 6 0 016-6z%22 fill=%22%23dc2626%22/><circle cx=%2250%22 cy=%2232%22 r=%226%22 fill=%22%23121215%22/><path d=%22M50 48a12 12 0 100 24 12 12 0 000-24zm0 20a8 8 0 110-16 8 8 0 010 16z%22 fill=%22%23ffffff%22/><rect x=%2236%22 y=%2276%22 width=%2228%22 height=%225%22 rx=%222.5%22 fill=%22%23ffffff%22 opacity=%220.8%22/></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -34,7 +34,7 @@
     <div class="card-glass rounded-2xl max-w-sm w-full p-6 space-y-5">
       <div class="text-center space-y-2">
         <img src="https://raw.githubusercontent.com/allconafrica/KERF/main/ALLCON-Logo.jpg" alt="ALLCON" class="h-12 mx-auto rounded bg-white p-1">
-        <h1 class="text-lg font-extrabold tracking-tight text-white">Material Purchasing & Stores</h1>
+        <h1 class="text-lg font-extrabold tracking-tight text-white">Material Purchasing & Expediting</h1>
         <p class="text-xs text-zinc-400">Sign in with your assigned access profile</p>
       </div>
       <form onsubmit="handleLogin(event)" class="space-y-3 text-sm">
@@ -60,7 +60,7 @@
       <div class="flex items-center gap-3">
         <img src="https://raw.githubusercontent.com/allconafrica/KERF/main/ALLCON-Logo.jpg" alt="ALLCON" class="h-9 rounded bg-white p-1">
         <div>
-          <h1 class="text-base md:text-lg font-bold text-white leading-tight">Material Purchasing & Receiving</h1>
+          <h1 class="text-base md:text-lg font-bold text-white leading-tight">Material Purchasing & Expediting</h1>
           <div class="text-[11px] text-zinc-400 flex items-center gap-2">
             <span>User: <strong id="header-username" class="text-amber-400">---</strong></span>
             <span>•</span>
@@ -133,7 +133,7 @@
 
     <!-- PROJECT CARDS LIST -->
     <div id="projects-container" class="space-y-6">
-      <div class="text-center p-12 text-zinc-500"><i class="fa-solid fa-spinner fa-spin text-red-500 mr-2"></i> Loading Material Records...</div>
+      <div class="text-center p-12 text-zinc-500"><i class="fa-solid fa-spinner fa-spin text-red-500 mr-2"></i> Loading Material & Expediting Records...</div>
     </div>
 
   </main>
@@ -187,11 +187,11 @@
     </div>
   </div>
 
-  <!-- EDIT LINE ITEM MODAL (ADMIN ONLY) -->
+  <!-- EDIT LINE ITEM MODAL -->
   <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-        <h2 class="text-base font-bold text-white">Edit Material Line Item & ETA</h2>
+        <h2 class="text-base font-bold text-white">Edit Material Line & Expediting Details</h2>
         <button onclick="closeEditModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
@@ -214,18 +214,24 @@
             </select>
           </div>
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">PURCHASE DATE</label>
-            <input type="date" id="edit-pdate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+            <label class="block font-bold text-zinc-400 mb-1">REMINDER FREQUENCY</label>
+            <select id="edit-freq" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+              <option value="DAILY">DAILY</option>
+              <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
+              <option value="WEEKLY">WEEKLY</option>
+              <option value="BI-WEEKLY">BI-WEEKLY</option>
+              <option value="MONTHLY">MONTHLY</option>
+            </select>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">ETA DELIVERY DATE</label>
-            <input type="date" id="edit-etadate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
+            <label class="block font-bold text-zinc-400 mb-1">PURCHASE DATE</label>
+            <input type="date" id="edit-pdate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
-            <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+            <label class="block font-bold text-zinc-400 mb-1">ETA DELIVERY DATE</label>
+            <input type="date" id="edit-etadate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -234,8 +240,8 @@
             <input type="text" id="edit-supplier" placeholder="SUPPLIER NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">POC (CONTACT)</label>
-            <input type="text" id="edit-poc" placeholder="POC NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+            <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
+            <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
           </div>
         </div>
         <div>
@@ -245,7 +251,7 @@
 
         <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
           <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
-          <button type="submit" id="save-edit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Update Line Item</button>
+          <button type="submit" id="save-edit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Update Record</button>
         </div>
       </form>
     </div>
@@ -269,7 +275,7 @@
           <label class="block font-bold text-zinc-300 mb-1">DELIVERY COMPLETION TYPE *</label>
           <select id="rec-type" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold text-sm">
             <option value="PARTIAL">PARTIAL DELIVERY (BLUE — Expecting More Drops)</option>
-            <option value="DIF">DELIVERED IN FULL / DIF (GREEN — Order Complete, Remove from Reminders)</option>
+            <option value="DIF">DELIVERED IN FULL / DIF (GREEN — Complete, Remove from Reminders)</option>
           </select>
         </div>
         <div>
@@ -288,6 +294,36 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- FOLLOW-UP COMMENT MODAL -->
+  <div id="comment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
+    <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-regular fa-comment-dots text-red-500"></i> Log Expediting Follow-Up Note
+        </h2>
+        <button onclick="closeCommentModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <input type="hidden" id="comment-target-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">NEW FOLLOW-UP NOTE</label>
+          <textarea id="comment-input" rows="3" placeholder="e.g. Spoke to rep; plates laser cut, collection Friday morning." class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 text-white"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">PREVIOUS FOLLOW-UP LOGS</label>
+          <div id="comment-history" class="p-3 bg-zinc-900 rounded-xl text-zinc-300 font-mono text-[11px] max-h-40 overflow-y-auto whitespace-pre-wrap border border-zinc-800">
+            No previous comments logged.
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCommentModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Close</button>
+          <button type="button" onclick="submitComment()" id="save-comment-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Save Note</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -439,7 +475,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="card-glass p-10 rounded-2xl text-center text-zinc-400 text-sm">No material line items match your search or filters.</div>`;
+        container.innerHTML = `<div class="card-glass p-10 rounded-2xl text-center text-zinc-400 text-sm">No material records match your search or filters.</div>`;
         return;
       }
 
@@ -485,7 +521,7 @@
               ` : ''}
             </div>
 
-            <!-- MATERIAL LINE ITEMS WITH STATUS BARS -->
+            <!-- MATERIAL LINE ITEMS WITH STATUS & EXPEDITING BARS -->
             <div class="divide-y divide-zinc-800/80">
               ${orderedLines.map(line => {
                 const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
@@ -510,12 +546,14 @@
                 if (line.status === 'PINK') statusLabel = 'FLOOR / OFF-CUTS';
 
                 const isFullyReceived = line.status === 'GREEN';
+                const safeId = line.id.replace(/'/g, "\\'");
 
                 return `
                   <div class="p-4 bg-zinc-900/90 border border-zinc-800 status-bar-${line.status} flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                     <div class="space-y-1.5 w-full">
                       <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-white uppercase tracking-wider border border-zinc-700">${statusLabel}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-red-400 uppercase tracking-wider border border-zinc-700"><i class="fa-solid fa-clock mr-1"></i> ${line.frequency || 'WEEKLY'}</span>
                         <span class="text-sm font-extrabold text-white ${line.status === 'CANCELLED' ? 'line-through' : ''}">${line.materialDesc}</span>
                       </div>
 
@@ -529,10 +567,21 @@
                       </div>
 
                       ${(poButtons || dnButtons) ? `<div class="flex flex-wrap gap-2 pt-1">${poButtons} ${dnButtons}</div>` : ''}
+
+                      ${line.comments ? `
+                        <div class="mt-2 p-2.5 bg-black/40 border border-zinc-800/80 rounded-xl text-xs font-mono text-zinc-300 whitespace-pre-wrap">
+                          <strong class="text-zinc-400 font-sans block mb-0.5 text-[10px] uppercase tracking-wider">Follow-Up Notes:</strong>
+                          ${line.comments}
+                        </div>
+                      ` : ''}
                     </div>
 
                     <!-- ACTION BUTTONS -->
                     <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+                      <button onclick="openCommentModal('${safeId}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition" title="Log Note">
+                        <i class="fa-regular fa-comment-dots text-red-400"></i> Note
+                      </button>
+
                       ${line.status !== 'CANCELLED' ? `
                         <button onclick="openReceiveModal('${line.id}')" class="flex-1 md:flex-initial ${isFullyReceived ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow'} text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
                           <i class="fa-solid ${isFullyReceived ? 'fa-plus' : 'fa-truck-ramp-box'}"></i> ${isFullyReceived ? 'ADD DROP' : 'LOG DELIVERY'}
@@ -603,9 +652,15 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <input type="text" placeholder="SUPPLIER" class="l-supplier p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
-          <input type="text" placeholder="POC" class="l-poc p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
           <input type="text" placeholder="PO NUMBER(S)" class="l-po p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
           <input type="date" placeholder="ETA" class="l-eta p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
+          <select class="l-freq p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+            <option value="DAILY">DAILY</option>
+            <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
+            <option value="WEEKLY" selected>WEEKLY</option>
+            <option value="BI-WEEKLY">BI-WEEKLY</option>
+            <option value="MONTHLY">MONTHLY</option>
+          </select>
         </div>
         <input type="text" placeholder="Paste Nextcloud PO Link(s)" class="l-polinks no-caps w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-blue-400">
       `;
@@ -622,9 +677,9 @@
         materialDesc: row.querySelector('.l-desc').value,
         status: row.querySelector('.l-status').value,
         supplier: row.querySelector('.l-supplier').value,
-        poc: row.querySelector('.l-poc').value,
         poNumbers: row.querySelector('.l-po').value,
         etaDate: row.querySelector('.l-eta').value,
+        frequency: row.querySelector('.l-freq').value,
         poLinks: row.querySelector('.l-polinks').value
       }));
 
@@ -658,8 +713,8 @@
       document.getElementById('edit-id').value = item.id;
       document.getElementById('edit-desc').value = item.materialDesc;
       document.getElementById('edit-status').value = item.status;
+      document.getElementById('edit-freq').value = item.frequency || 'WEEKLY';
       document.getElementById('edit-supplier').value = item.supplier;
-      document.getElementById('edit-poc').value = item.poc;
       document.getElementById('edit-po').value = item.poNumbers;
       document.getElementById('edit-polinks').value = item.poLinks;
       document.getElementById('edit-pdate').value = item.purchaseDate;
@@ -677,8 +732,8 @@
         id: document.getElementById('edit-id').value,
         materialDesc: document.getElementById('edit-desc').value,
         status: document.getElementById('edit-status').value,
+        frequency: document.getElementById('edit-freq').value,
         supplier: document.getElementById('edit-supplier').value,
-        poc: document.getElementById('edit-poc').value,
         poNumbers: document.getElementById('edit-po').value,
         poLinks: document.getElementById('edit-polinks').value,
         purchaseDate: document.getElementById('edit-pdate').value,
@@ -692,6 +747,40 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      setTimeout(() => loadData(true), 1000);
+    }
+
+    function openCommentModal(id) {
+      const item = allItems.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('comment-target-id').value = item.id;
+      document.getElementById('comment-input').value = '';
+      document.getElementById('comment-history').innerText = item.comments || 'No previous comments logged.';
+      document.getElementById('comment-modal').classList.remove('hidden');
+    }
+
+    function closeCommentModal() { document.getElementById('comment-modal').classList.add('hidden'); }
+
+    async function submitComment() {
+      const id = document.getElementById('comment-target-id').value;
+      const commentText = document.getElementById('comment-input').value.trim();
+      if (!commentText) return;
+
+      const btn = document.getElementById('save-comment-btn');
+      btn.disabled = true;
+      btn.innerText = "Saving...";
+
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_comment', id, commentText })
+      });
+
+      closeCommentModal();
+      btn.disabled = false;
+      btn.innerText = "Save Note";
       setTimeout(() => loadData(true), 1000);
     }
 
