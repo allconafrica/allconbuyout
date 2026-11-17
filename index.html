@@ -19,7 +19,6 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     }
-    /* Explicit Left-Border Status Accent Bars */
     .status-bar-YELLOW { border-left: 5px solid #eab308 !important; }
     .status-bar-ORANGE { border-left: 5px solid #f97316 !important; }
     .status-bar-PARTIAL { border-left: 5px solid #3b82f6 !important; }
@@ -61,7 +60,7 @@
       <div class="flex items-center gap-3">
         <img src="https://raw.githubusercontent.com/allconafrica/KERF/main/ALLCON-Logo.jpg" alt="ALLCON" class="h-9 rounded bg-white p-1">
         <div>
-          <h1 class="text-base md:text-lg font-bold text-white leading-tight">Material Purchasing Tracker</h1>
+          <h1 class="text-base md:text-lg font-bold text-white leading-tight">Material Purchasing & Receiving</h1>
           <div class="text-[11px] text-zinc-400 flex items-center gap-2">
             <span>User: <strong id="header-username" class="text-amber-400">---</strong></span>
             <span>•</span>
@@ -108,7 +107,7 @@
           <option value="YELLOW">YELLOW - WAITING QUOTE</option>
           <option value="ORANGE">ORANGE - PO ISSUED</option>
           <option value="PARTIAL">BLUE - PARTIAL DELIVERY</option>
-          <option value="GREEN">GREEN - DIF (RECEIVED)</option>
+          <option value="GREEN">GREEN - DIF (COMPLETED)</option>
           <option value="PINK">PINK - FLOOR / OFF-CUTS</option>
           <option value="CANCELLED">CANCELLED</option>
         </select>
@@ -127,7 +126,7 @@
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-yellow-500 inline-block"></span> Waiting Quote</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-orange-500 inline-block"></span> PO Issued</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> Partial Delivery</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> DIF (Received)</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> DIF (Completed)</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-pink-500 inline-block"></span> Floor / Off-Cuts</span>
       </div>
     </div>
@@ -192,7 +191,7 @@
   <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-        <h2 class="text-base font-bold text-white">Edit Material Line Item (Buyer Access)</h2>
+        <h2 class="text-base font-bold text-white">Edit Material Line Item & ETA</h2>
         <button onclick="closeEditModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
@@ -209,7 +208,7 @@
               <option value="YELLOW">YELLOW - WAITING QUOTE</option>
               <option value="ORANGE">ORANGE - PO ISSUED</option>
               <option value="PARTIAL">BLUE - PARTIAL DELIVERY</option>
-              <option value="GREEN">GREEN - DIF (RECEIVED)</option>
+              <option value="GREEN">GREEN - DIF (COMPLETED)</option>
               <option value="PINK">PINK - FLOOR / OFF-CUTS</option>
               <option value="CANCELLED">CANCELLED</option>
             </select>
@@ -221,21 +220,27 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
+            <label class="block font-bold text-zinc-400 mb-1">ETA DELIVERY DATE</label>
+            <input type="date" id="edit-etadate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
+            <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
             <label class="block font-bold text-zinc-400 mb-1">SUPPLIER</label>
             <input type="text" id="edit-supplier" placeholder="SUPPLIER NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">POC (CONTACT PERSON)</label>
+            <label class="block font-bold text-zinc-400 mb-1">POC (CONTACT)</label>
             <input type="text" id="edit-poc" placeholder="POC NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
           </div>
         </div>
         <div>
-          <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
-          <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
-        </div>
-        <div>
           <label class="block font-bold text-zinc-400 mb-1">NEXTCLOUD PO LINK(S)</label>
-          <input type="text" id="edit-polinks" placeholder="https://nextcloud.../PO19254.pdf" class="no-caps w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-blue-400">
+          <input type="text" id="edit-polinks" placeholder="https://nextcloud.../PO.pdf" class="no-caps w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-blue-400">
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
@@ -246,7 +251,7 @@
     </div>
   </div>
 
-  <!-- STORES RECEIVE MODAL (PARTIAL VS DIF) -->
+  <!-- STORES RECEIVE MODAL -->
   <div id="receive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-md w-full p-5 space-y-4 border-2 border-emerald-600/50">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -261,10 +266,10 @@
       <form onsubmit="submitReceive(event)" class="space-y-3 text-xs">
         <input type="hidden" id="rec-id">
         <div>
-          <label class="block font-bold text-zinc-300 mb-1">DELIVERY TYPE *</label>
+          <label class="block font-bold text-zinc-300 mb-1">DELIVERY COMPLETION TYPE *</label>
           <select id="rec-type" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold text-sm">
             <option value="PARTIAL">PARTIAL DELIVERY (BLUE — Expecting More Drops)</option>
-            <option value="DIF">DELIVERED IN FULL / DIF (GREEN — Order Complete)</option>
+            <option value="DIF">DELIVERED IN FULL / DIF (GREEN — Order Complete, Remove from Reminders)</option>
           </select>
         </div>
         <div>
@@ -501,7 +506,7 @@
                 if (line.status === 'YELLOW') statusLabel = 'WAITING QUOTE';
                 if (line.status === 'ORANGE') statusLabel = 'PO ISSUED';
                 if (line.status === 'PARTIAL') statusLabel = 'PARTIAL DELIVERY';
-                if (line.status === 'GREEN') statusLabel = 'DIF (RECEIVED)';
+                if (line.status === 'GREEN') statusLabel = 'DIF (COMPLETED)';
                 if (line.status === 'PINK') statusLabel = 'FLOOR / OFF-CUTS';
 
                 const isFullyReceived = line.status === 'GREEN';
@@ -519,17 +524,18 @@
                         <span><strong class="text-zinc-400">POC:</strong> ${line.poc || '---'}</span>
                         <span><strong class="text-zinc-400">PO:</strong> <span class="text-amber-300 font-bold">${line.poNumbers || '---'}</span></span>
                         <span><strong class="text-zinc-400">ORDERED:</strong> ${line.purchaseDate || '---'}</span>
+                        <span><strong class="text-zinc-400">ETA:</strong> <span class="text-amber-300 font-bold">${line.etaDate || 'NOT SET'}</span></span>
                         ${line.dateReceived ? `<span class="text-sky-300 font-bold"><strong>LAST DROP:</strong> ${line.dateReceived} (DN: ${line.deliveryNote || 'N/A'}) [By: ${line.receivedBy || 'STORES'}]</span>` : ''}
                       </div>
 
                       ${(poButtons || dnButtons) ? `<div class="flex flex-wrap gap-2 pt-1">${poButtons} ${dnButtons}</div>` : ''}
                     </div>
 
-                    <!-- ACTION BUTTONS: ALLOWS MULTIPLE PARTIALS AND RE-DROPS -->
+                    <!-- ACTION BUTTONS -->
                     <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
                       ${line.status !== 'CANCELLED' ? `
                         <button onclick="openReceiveModal('${line.id}')" class="flex-1 md:flex-initial ${isFullyReceived ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow'} text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-                          <i class="fa-solid ${isFullyReceived ? 'fa-plus' : 'fa-truck-ramp-box'}"></i> ${isFullyReceived ? 'ADD ANOTHER DROP' : 'LOG DELIVERY'}
+                          <i class="fa-solid ${isFullyReceived ? 'fa-plus' : 'fa-truck-ramp-box'}"></i> ${isFullyReceived ? 'ADD DROP' : 'LOG DELIVERY'}
                         </button>
                       ` : ''}
 
@@ -599,7 +605,7 @@
           <input type="text" placeholder="SUPPLIER" class="l-supplier p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
           <input type="text" placeholder="POC" class="l-poc p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
           <input type="text" placeholder="PO NUMBER(S)" class="l-po p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
-          <input type="date" class="l-pdate p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+          <input type="date" placeholder="ETA" class="l-eta p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
         </div>
         <input type="text" placeholder="Paste Nextcloud PO Link(s)" class="l-polinks no-caps w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-blue-400">
       `;
@@ -618,7 +624,7 @@
         supplier: row.querySelector('.l-supplier').value,
         poc: row.querySelector('.l-poc').value,
         poNumbers: row.querySelector('.l-po').value,
-        purchaseDate: row.querySelector('.l-pdate').value,
+        etaDate: row.querySelector('.l-eta').value,
         poLinks: row.querySelector('.l-polinks').value
       }));
 
@@ -657,6 +663,7 @@
       document.getElementById('edit-po').value = item.poNumbers;
       document.getElementById('edit-polinks').value = item.poLinks;
       document.getElementById('edit-pdate').value = item.purchaseDate;
+      document.getElementById('edit-etadate').value = item.etaDate || '';
 
       document.getElementById('edit-modal').classList.remove('hidden');
     }
@@ -674,7 +681,8 @@
         poc: document.getElementById('edit-poc').value,
         poNumbers: document.getElementById('edit-po').value,
         poLinks: document.getElementById('edit-polinks').value,
-        purchaseDate: document.getElementById('edit-pdate').value
+        purchaseDate: document.getElementById('edit-pdate').value,
+        etaDate: document.getElementById('edit-etadate').value
       };
 
       closeEditModal();
