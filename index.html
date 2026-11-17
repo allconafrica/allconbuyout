@@ -214,8 +214,12 @@
             </select>
           </div>
           <div>
-            <label class="block font-bold text-zinc-400 mb-1">REMINDER FREQUENCY</label>
+            <label class="block font-bold text-zinc-400 mb-1">REMINDER SETTING</label>
             <select id="edit-freq" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+              <option value="NONE">NONE (NEVER)</option>
+              <option value="OVERDUE ONLY">OVERDUE ONLY</option>
+              <option value="3 DAYS BEFORE ETA">3 DAYS BEFORE ETA</option>
+              <option value="1 WEEK BEFORE ETA">1 WEEK BEFORE ETA</option>
               <option value="DAILY">DAILY</option>
               <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
               <option value="WEEKLY">WEEKLY</option>
@@ -553,7 +557,7 @@
                     <div class="space-y-1.5 w-full">
                       <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-white uppercase tracking-wider border border-zinc-700">${statusLabel}</span>
-                        <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-red-400 uppercase tracking-wider border border-zinc-700"><i class="fa-solid fa-clock mr-1"></i> ${line.frequency || 'WEEKLY'}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-red-400 uppercase tracking-wider border border-zinc-700"><i class="fa-solid fa-bell mr-1"></i> ${line.frequency || 'WEEKLY'}</span>
                         <span class="text-sm font-extrabold text-white ${line.status === 'CANCELLED' ? 'line-through' : ''}">${line.materialDesc}</span>
                       </div>
 
@@ -655,6 +659,10 @@
           <input type="text" placeholder="PO NUMBER(S)" class="l-po p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
           <input type="date" placeholder="ETA" class="l-eta p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
           <select class="l-freq p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+            <option value="NONE">NONE (NEVER)</option>
+            <option value="OVERDUE ONLY">OVERDUE ONLY</option>
+            <option value="3 DAYS BEFORE ETA">3 DAYS BEFORE ETA</option>
+            <option value="1 WEEK BEFORE ETA">1 WEEK BEFORE ETA</option>
             <option value="DAILY">DAILY</option>
             <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
             <option value="WEEKLY" selected>WEEKLY</option>
