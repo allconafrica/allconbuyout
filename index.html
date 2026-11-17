@@ -22,6 +22,7 @@
     /* Explicit Left-Border Status Accent Bars */
     .status-bar-YELLOW { border-left: 5px solid #eab308 !important; }
     .status-bar-ORANGE { border-left: 5px solid #f97316 !important; }
+    .status-bar-PARTIAL { border-left: 5px solid #3b82f6 !important; }
     .status-bar-GREEN  { border-left: 5px solid #22c55e !important; }
     .status-bar-PINK   { border-left: 5px solid #ec4899 !important; }
     .status-bar-CANCELLED { border-left: 5px solid #71717a !important; opacity: 0.55; }
@@ -106,7 +107,8 @@
           <option value="ALL">ALL STATUS COLOURS</option>
           <option value="YELLOW">YELLOW - WAITING QUOTE</option>
           <option value="ORANGE">ORANGE - PO ISSUED</option>
-          <option value="GREEN">GREEN - RECEIVED</option>
+          <option value="PARTIAL">BLUE - PARTIAL DELIVERY</option>
+          <option value="GREEN">GREEN - DIF (RECEIVED)</option>
           <option value="PINK">PINK - FLOOR / OFF-CUTS</option>
           <option value="CANCELLED">CANCELLED</option>
         </select>
@@ -124,9 +126,9 @@
       <div class="flex flex-wrap items-center gap-3 pt-1 text-[11px] font-bold text-zinc-300">
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-yellow-500 inline-block"></span> Waiting Quote</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-orange-500 inline-block"></span> PO Issued</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Received</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> Partial Delivery</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> DIF (Received)</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-pink-500 inline-block"></span> Floor / Off-Cuts</span>
-        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-zinc-500 inline-block"></span> Cancelled</span>
       </div>
     </div>
 
@@ -206,7 +208,8 @@
             <select id="edit-status" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
               <option value="YELLOW">YELLOW - WAITING QUOTE</option>
               <option value="ORANGE">ORANGE - PO ISSUED</option>
-              <option value="GREEN">GREEN - RECEIVED</option>
+              <option value="PARTIAL">BLUE - PARTIAL DELIVERY</option>
+              <option value="GREEN">GREEN - DIF (RECEIVED)</option>
               <option value="PINK">PINK - FLOOR / OFF-CUTS</option>
               <option value="CANCELLED">CANCELLED</option>
             </select>
@@ -243,12 +246,12 @@
     </div>
   </div>
 
-  <!-- STORES RECEIVE MODAL -->
+  <!-- STORES RECEIVE MODAL (PARTIAL VS DIF) -->
   <div id="receive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
     <div class="card-glass rounded-2xl max-w-md w-full p-5 space-y-4 border-2 border-emerald-600/50">
       <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
         <h2 class="text-base font-bold text-emerald-400 flex items-center gap-2">
-          <i class="fa-solid fa-circle-check"></i> Confirm Material Received
+          <i class="fa-solid fa-circle-check"></i> Log Material Delivery
         </h2>
         <button onclick="closeReceiveModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
@@ -258,18 +261,25 @@
       <form onsubmit="submitReceive(event)" class="space-y-3 text-xs">
         <input type="hidden" id="rec-id">
         <div>
+          <label class="block font-bold text-zinc-300 mb-1">DELIVERY TYPE *</label>
+          <select id="rec-type" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold text-sm">
+            <option value="PARTIAL">PARTIAL DELIVERY (BLUE — Expecting More Drops)</option>
+            <option value="DIF">DELIVERED IN FULL / DIF (GREEN — Order Complete)</option>
+          </select>
+        </div>
+        <div>
           <label class="block font-bold text-zinc-300 mb-1">DELIVERY NOTE / GRN NUMBER *</label>
           <input type="text" id="rec-dn" required placeholder="e.g. DN-12345" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-sm font-bold">
         </div>
         <div>
           <label class="block font-bold text-zinc-300 mb-1">SNAP PHOTO OR SELECT FROM GALLERY (Multiple Allowed)</label>
           <input type="file" id="rec-camera-files" accept="image/*" capture="environment" multiple class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-xs file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer">
-          <p class="text-[10px] text-zinc-400 mt-1">Tap to snap photos of the material and delivery note directly from your phone camera or gallery.</p>
+          <p class="text-[10px] text-zinc-400 mt-1">Snap or select photos of the material and delivery note. Previous photos are safely retained.</p>
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeReceiveModal()" class="px-4 py-2.5 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
           <button type="submit" id="confirm-rec-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl shadow-lg">
-            CONFIRM & NOTIFY BUYER
+            SUBMIT DELIVERY & NOTIFY BUYER
           </button>
         </div>
       </form>
@@ -470,7 +480,7 @@
               ` : ''}
             </div>
 
-            <!-- MATERIAL LINE ITEMS WITH STABLE STATUS BARS -->
+            <!-- MATERIAL LINE ITEMS WITH STATUS BARS -->
             <div class="divide-y divide-zinc-800/80">
               ${orderedLines.map(line => {
                 const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
@@ -490,8 +500,11 @@
                 let statusLabel = line.status;
                 if (line.status === 'YELLOW') statusLabel = 'WAITING QUOTE';
                 if (line.status === 'ORANGE') statusLabel = 'PO ISSUED';
-                if (line.status === 'GREEN') statusLabel = 'RECEIVED';
+                if (line.status === 'PARTIAL') statusLabel = 'PARTIAL DELIVERY';
+                if (line.status === 'GREEN') statusLabel = 'DIF (RECEIVED)';
                 if (line.status === 'PINK') statusLabel = 'FLOOR / OFF-CUTS';
+
+                const isFullyReceived = line.status === 'GREEN';
 
                 return `
                   <div class="p-4 bg-zinc-900/90 border border-zinc-800 status-bar-${line.status} flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
@@ -506,17 +519,17 @@
                         <span><strong class="text-zinc-400">POC:</strong> ${line.poc || '---'}</span>
                         <span><strong class="text-zinc-400">PO:</strong> <span class="text-amber-300 font-bold">${line.poNumbers || '---'}</span></span>
                         <span><strong class="text-zinc-400">ORDERED:</strong> ${line.purchaseDate || '---'}</span>
-                        ${line.dateReceived ? `<span class="text-emerald-300 font-bold"><strong>RECEIVED:</strong> ${line.dateReceived} (DN: ${line.deliveryNote || 'N/A'})</span>` : ''}
+                        ${line.dateReceived ? `<span class="text-sky-300 font-bold"><strong>LAST DROP:</strong> ${line.dateReceived} (DN: ${line.deliveryNote || 'N/A'}) [By: ${line.receivedBy || 'STORES'}]</span>` : ''}
                       </div>
 
                       ${(poButtons || dnButtons) ? `<div class="flex flex-wrap gap-2 pt-1">${poButtons} ${dnButtons}</div>` : ''}
                     </div>
 
-                    <!-- ACTION BUTTONS -->
+                    <!-- ACTION BUTTONS: ALLOWS MULTIPLE PARTIALS AND RE-DROPS -->
                     <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
-                      ${(line.status !== 'GREEN' && line.status !== 'CANCELLED') ? `
-                        <button onclick="openReceiveModal('${line.id}')" class="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5">
-                          <i class="fa-solid fa-check"></i> MARK RECEIVED
+                      ${line.status !== 'CANCELLED' ? `
+                        <button onclick="openReceiveModal('${line.id}')" class="flex-1 md:flex-initial ${isFullyReceived ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow'} text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                          <i class="fa-solid ${isFullyReceived ? 'fa-plus' : 'fa-truck-ramp-box'}"></i> ${isFullyReceived ? 'ADD ANOTHER DROP' : 'LOG DELIVERY'}
                         </button>
                       ` : ''}
 
@@ -690,6 +703,7 @@
     async function submitReceive(e) {
       e.preventDefault();
       const id = document.getElementById('rec-id').value;
+      const deliveryType = document.getElementById('rec-type').value;
       const dn = document.getElementById('rec-dn').value;
       const fileInput = document.getElementById('rec-camera-files');
 
@@ -713,13 +727,14 @@
       const payload = {
         action: "mark_received",
         id: id,
+        deliveryType: deliveryType,
         deliveryNote: dn,
         photos: photoArray,
         receivedBy: currentUser ? currentUser.username : 'STORES'
       };
 
       closeReceiveModal();
-      btn.innerText = "CONFIRM & NOTIFY BUYER";
+      btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
       btn.disabled = false;
 
       await fetch(SCRIPT_URL, {
