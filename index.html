@@ -718,8 +718,7 @@
       closeProjectModal();
       await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
 
@@ -779,8 +778,7 @@
       closeEditModal();
       await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
       await loadData(true);
@@ -817,8 +815,7 @@
 
       await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add_comment', id, commentText })
       });
 
@@ -936,19 +933,24 @@
       };
 
       closeReceiveModal();
+      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Uploading...`;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error("Submission error:", err);
+      }
+
       btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
       btn.disabled = false;
 
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-
       setTimeout(async () => {
         await loadData(true);
-      }, 3500);
+      }, 4000);
     }
 
     function openAdminModal() {
@@ -981,8 +983,7 @@
 
       await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "add_user", username, password, role, email })
       });
 
@@ -993,8 +994,7 @@
     async function deleteUser(username) {
       await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "delete_user", username })
       });
       await loadData(true);
