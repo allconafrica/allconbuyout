@@ -923,11 +923,12 @@
       btn.innerText = "Uploading to Nextcloud...";
       btn.disabled = true;
 
-      // Nextcloud Direct Browser WebDAV Credentials & Config
+      // Nextcloud Direct Browser WebDAV Credentials & Config with CORS Proxy
       const ncUser = "norman.allconafrica@gmail.com";
       const ncPass = "oYC65-dt3dk-NLmBz-73iSc-n9rTJ";
       const ncBaseUrl = "https://noa.it.tabdigital.cloud/remote.php/dav/files/norman.allconafrica%40gmail.com/Allcon_Delivery_Notes/";
       const authHeader = "Basic " + btoa(ncUser + ":" + ncPass);
+      const corsProxy = "https://corsproxy.io/?";
 
       let uploadedPhotoUrls = [];
 
@@ -935,7 +936,7 @@
         try {
           const photo = stagedPhotos[i];
           const fileName = `DN_${id}_${Date.now()}_${i+1}.jpg`;
-          const targetUrl = ncBaseUrl + fileName;
+          const targetUrl = corsProxy + encodeURIComponent(ncBaseUrl + fileName);
 
           const byteCharacters = atob(photo.bytes);
           const byteNumbers = new Array(byteCharacters.length);
@@ -949,13 +950,14 @@
             method: 'PUT',
             headers: {
               'Authorization': authHeader,
-              'Content-Type': 'image/jpeg'
+              'Content-Type': 'image/jpeg',
+              'X-Requested-With': 'XMLHttpRequest'
             },
             body: blob
           });
 
           if (putRes.ok || putRes.status === 201 || putRes.status === 204) {
-            uploadedPhotoUrls.push(targetUrl);
+            uploadedPhotoUrls.push(ncBaseUrl + fileName);
           } else {
             console.error("Nextcloud upload failed with status:", putRes.status);
           }
