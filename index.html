@@ -287,7 +287,7 @@
           <input type="text" id="rec-dn" required placeholder="e.g. DN-12345" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-sm font-bold">
         </div>
         
-        <!-- SPLIT CAMERA & MULTI-GALLERY UPLOAD -->
+        <!-- CAMERA & MULTI-GALLERY UPLOAD -->
         <div class="space-y-2">
           <label class="block font-bold text-zinc-300">ATTACH PHOTOS (CAMERA OR MULTIPLE GALLERY)</label>
           <div class="grid grid-cols-2 gap-2">
@@ -301,9 +301,7 @@
             </label>
           </div>
           
-          <!-- STAGED PHOTO QUEUE -->
           <div id="staged-photos-list" class="flex flex-wrap gap-2 pt-1"></div>
-          <p class="text-[10px] text-zinc-400">Photos are automatically compressed so multiple files upload fast without failing.</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
@@ -541,7 +539,7 @@
               ` : ''}
             </div>
 
-            <!-- MATERIAL LINE ITEMS WITH STATUS & EXPEDITING BARS -->
+            <!-- MATERIAL LINE ITEMS -->
             <div class="divide-y divide-zinc-800/80">
               ${orderedLines.map(line => {
                 const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
@@ -554,7 +552,7 @@
                 const dnLinks = (line.dnLink || '').split(',').map(l => l.trim()).filter(Boolean);
                 const dnButtons = dnLinks.map((url, idx) => `
                   <a href="${url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg transition">
-                    <i class="fa-solid fa-image"></i> PHOTO ${dnLinks.length > 1 ? idx + 1 : ''}
+                    <i class="fa-solid fa-image"></i> VIEW PHOTO ${dnLinks.length > 1 ? idx + 1 : ''}
                   </a>
                 `).join('');
 
@@ -765,7 +763,6 @@
         etaDate: document.getElementById('edit-etadate').value
       };
 
-      // Optimistic local UI update
       const localItem = allItems.find(i => i.id === id);
       if (localItem) {
         localItem.materialDesc = payload.materialDesc.toUpperCase();
@@ -810,7 +807,6 @@
       btn.disabled = true;
       btn.innerText = "Saving...";
 
-      // Optimistic local UI update
       const localItem = allItems.find(i => i.id === id);
       if (localItem) {
         const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
@@ -848,7 +844,7 @@
 
     function closeReceiveModal() { document.getElementById('receive-modal').classList.add('hidden'); }
 
-    // Client-side image compressor (prevents large mobile camera photos from crashing Apps Script)
+    // Robust Image Compression
     function compressImage(file) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -856,7 +852,7 @@
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_DIM = 1280;
+            const MAX_DIM = 1024;
             let width = img.width;
             let height = img.height;
 
@@ -873,7 +869,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             resolve({
               name: file.name || `Photo_${Date.now()}.jpg`,
               bytes: dataUrl.split(',')[1],
@@ -929,7 +925,7 @@
       const dn = document.getElementById('rec-dn').value;
 
       const btn = document.getElementById('confirm-rec-btn');
-      btn.innerText = "Uploading & Saving...";
+      btn.innerText = "Uploading Photos & Saving...";
       btn.disabled = true;
 
       const payload = {
@@ -941,21 +937,11 @@
         receivedBy: currentUser ? currentUser.username : 'STORES'
       };
 
-      // Optimistic immediate UI update so user sees change right away
-      const localItem = allItems.find(i => i.id === id);
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (localItem) {
-        localItem.status = deliveryType === "PARTIAL" ? "PARTIAL" : "GREEN";
-        localItem.dateReceived = todayStr;
-        localItem.deliveryNote = localItem.deliveryNote ? `${localItem.deliveryNote} | ${dn.toUpperCase()}` : dn.toUpperCase();
-        localItem.receivedBy = currentUser ? currentUser.username.toUpperCase() : 'STORES';
-        renderDashboard();
-      }
-
       closeReceiveModal();
       btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
       btn.disabled = false;
 
+      // Send payload via fetch (using CORS workaround if needed, or normal POST)
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -963,13 +949,15 @@
         body: JSON.stringify(payload)
       });
 
-      // Pull fresh Google Drive links from Google Sheets after upload completes
-      await loadData(true);
+      // Wait 3 seconds for Drive upload to finish writing to Google Sheets, then refresh
+      setTimeout(async () => {
+        await loadData(true);
+      }, 3000);
     }
 
     function openAdminModal() {
       renderUsersList();
-      document.getElementById('admin-modal').classList.remove('hidden');
+      document.getElementById('admin-modal').classList.add('hidden');
     }
 
     function renderUsersList() {
