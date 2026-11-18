@@ -844,7 +844,6 @@
 
     function closeReceiveModal() { document.getElementById('receive-modal').classList.add('hidden'); }
 
-    // Robust Image Compression
     function compressImage(file) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -852,7 +851,7 @@
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_DIM = 1024;
+            const MAX_DIM = 900;
             let width = img.width;
             let height = img.height;
 
@@ -869,9 +868,8 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
             resolve({
-              name: file.name || `Photo_${Date.now()}.jpg`,
               bytes: dataUrl.split(',')[1],
               type: 'image/jpeg'
             });
@@ -941,23 +939,21 @@
       btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
       btn.disabled = false;
 
-      // Send payload via fetch (using CORS workaround if needed, or normal POST)
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
 
-      // Wait 3 seconds for Drive upload to finish writing to Google Sheets, then refresh
       setTimeout(async () => {
         await loadData(true);
-      }, 3000);
+      }, 3500);
     }
 
     function openAdminModal() {
       renderUsersList();
-      document.getElementById('admin-modal').classList.add('hidden');
+      document.getElementById('admin-modal').classList.remove('hidden');
     }
 
     function renderUsersList() {
@@ -1004,9 +1000,7 @@
       await loadData(true);
     }
 
-    function exportStyledExcel() {
-      // (Excel export logic remains standard)
-    }
+    function exportStyledExcel() {}
   </script>
 </body>
 </html>
