@@ -368,7 +368,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQfVeZri7igMc1-B6753psvlX6F-_BTJxAsMqOQGAyWxEmolzFZ5_y2xvEUqRf5enllQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiWOEv85ezdK2AmFgMpsSoBe0kR4em_v9YtB6hGX6V-qHSvDQl_J_QvOIsolYlBEz90w/exec";
 
     let allItems = [];
     let allUsers = [];
@@ -920,20 +920,63 @@
       const dn = document.getElementById('rec-dn').value;
 
       const btn = document.getElementById('confirm-rec-btn');
-      btn.innerText = "Uploading Photos & Saving...";
+      btn.innerText = "Uploading to Nextcloud...";
       btn.disabled = true;
+
+      // Nextcloud Direct Browser WebDAV Credentials & Config
+      const ncUser = "norman.allconafrica@gmail.com";
+      const ncPass = "oYC65-dt3dk-NLmBz-73iSc-n9rTJ";
+      const ncBaseUrl = "https://noa.it.tabdigital.cloud/remote.php/dav/files/norman.allconafrica%40gmail.com/Allcon_Delivery_Notes/";
+      const authHeader = "Basic " + btoa(ncUser + ":" + ncPass);
+
+      let uploadedPhotoUrls = [];
+
+      for (let i = 0; i < stagedPhotos.length; i++) {
+        try {
+          const photo = stagedPhotos[i];
+          const fileName = `DN_${id}_${Date.now()}_${i+1}.jpg`;
+          const targetUrl = ncBaseUrl + fileName;
+
+          const byteCharacters = atob(photo.bytes);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let b = 0; b < byteCharacters.length; b++) {
+            byteNumbers[b] = byteCharacters.charCodeAt(b);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+          const putRes = await fetch(targetUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'image/jpeg'
+            },
+            body: blob
+          });
+
+          if (putRes.ok || putRes.status === 201 || putRes.status === 204) {
+            uploadedPhotoUrls.push(targetUrl);
+          } else {
+            console.error("Nextcloud upload failed with status:", putRes.status);
+          }
+        } catch (uploadErr) {
+          console.error("Nextcloud direct upload error:", uploadErr);
+        }
+      }
+
+      btn.innerText = "Saving to Google Sheet...";
 
       const payload = {
         action: "mark_received",
         id: id,
         deliveryType: deliveryType,
         deliveryNote: dn,
-        photos: stagedPhotos,
+        photoUrls: uploadedPhotoUrls,
         receivedBy: currentUser ? currentUser.username : 'STORES'
       };
 
       closeReceiveModal();
-      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Uploading...`;
+      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Syncing...`;
 
       try {
         await fetch(SCRIPT_URL, {
@@ -942,7 +985,7 @@
           body: JSON.stringify(payload)
         });
       } catch (err) {
-        console.error("Submission error:", err);
+        console.error("Sheet submission error:", err);
       }
 
       btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
@@ -950,7 +993,7 @@
 
       setTimeout(async () => {
         await loadData(true);
-      }, 4000);
+      }, 3000);
     }
 
     function openAdminModal() {
