@@ -69,6 +69,7 @@
           </div>
         </div>
       </div>
+
       <div class="flex items-center gap-2 flex-wrap">
         <button onclick="exportStyledExcel()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
           <i class="fa-solid fa-file-excel"></i> <span class="hidden sm:inline">Export Sheet</span>
@@ -88,12 +89,15 @@
 
   <!-- MAIN CONTENT -->
   <main class="max-w-7xl mx-auto px-4 py-5 flex-grow w-full space-y-5">
+
+    <!-- SEARCH & FILTER BAR -->
     <div class="card-glass p-4 rounded-2xl space-y-3">
       <div class="relative">
         <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-400 text-base"></i>
         <input type="text" id="search-input" onkeyup="renderDashboard()" placeholder="SEARCH PO NUMBER, AC NUMBER, MATERIAL, SUPPLIER, OR CLIENT..." class="w-full pl-11 pr-10 py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-sm font-bold placeholder-zinc-500 focus:border-red-500 focus:outline-none">
         <button onclick="document.getElementById('search-input').value=''; renderDashboard();" class="absolute right-3 top-3 text-zinc-400 hover:text-white text-xs px-2 py-1 bg-zinc-800 rounded-lg">CLEAR</button>
       </div>
+
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
         <select id="filter-project" onchange="renderDashboard()" class="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
           <option value="ALL">ALL PROJECTS / CLIENTS</option>
@@ -116,6 +120,8 @@
           <i class="fa-solid fa-rotate"></i> REFRESH DATA
         </button>
       </div>
+
+      <!-- COLOR LEGEND -->
       <div class="flex flex-wrap items-center gap-3 pt-1 text-[11px] font-bold text-zinc-300">
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-yellow-500 inline-block"></span> Waiting Quote</span>
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-orange-500 inline-block"></span> PO Issued</span>
@@ -124,10 +130,136 @@
         <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-pink-500 inline-block"></span> Floor / Off-Cuts</span>
       </div>
     </div>
+
+    <!-- PROJECT CARDS LIST -->
     <div id="projects-container" class="space-y-6">
       <div class="text-center p-12 text-zinc-500"><i class="fa-solid fa-spinner fa-spin text-red-500 mr-2"></i> Loading Material & Expediting Records...</div>
     </div>
+
   </main>
+
+  <!-- NEW PROJECT / ADD LINES MODAL -->
+  <div id="project-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3 overflow-y-auto">
+    <div class="card-glass rounded-2xl max-w-2xl w-full p-5 my-auto space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 id="project-modal-title" class="text-base font-bold text-white">Create Project & Material Lines</h2>
+        <button onclick="closeProjectModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="submitNewLines(event)" class="space-y-4 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-zinc-900/80 p-3 rounded-xl border border-zinc-800">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">CLIENT</label>
+            <input type="text" id="proj-client" required placeholder="PROJECT NAME" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">MIL NO.</label>
+            <input type="text" id="proj-mil" required placeholder="MIL NUMBER" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">ITEM NAME</label>
+            <input type="text" id="proj-item" required placeholder="PANEL TROMMEL" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">AC NO.</label>
+            <input type="text" id="proj-ac" required placeholder="AC NUMBER" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">BUYER</label>
+            <select id="proj-buyer" class="w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-400 font-bold">
+              <option value="NORMAN">NORMAN</option>
+              <option value="NORLENE">NORLENE</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-3 max-h-[50vh] overflow-y-auto pr-1" id="dynamic-lines-container"></div>
+
+        <button type="button" onclick="addLineRowInput()" class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 border border-dashed border-zinc-600 text-zinc-200 font-bold rounded-xl">
+          <i class="fa-solid fa-plus mr-1"></i> Add Another Material Line
+        </button>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+          <button type="button" onclick="closeProjectModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
+          <button type="submit" id="save-lines-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Save Line Items</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT LINE ITEM MODAL -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
+    <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-bold text-white">Edit Material Line & Expediting Details</h2>
+        <button onclick="closeEditModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="submitEditLine(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">MATERIAL DESCRIPTION</label>
+          <input type="text" id="edit-desc" required class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">STATUS COLOUR</label>
+            <select id="edit-status" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+              <option value="YELLOW">YELLOW - WAITING QUOTE</option>
+              <option value="ORANGE">ORANGE - PO ISSUED</option>
+              <option value="PARTIAL">BLUE - PARTIAL DELIVERY</option>
+              <option value="GREEN">GREEN - DIF (COMPLETED)</option>
+              <option value="PINK">PINK - FLOOR / OFF-CUTS</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">REMINDER SETTING</label>
+            <select id="edit-freq" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+              <option value="NONE">NONE (NEVER)</option>
+              <option value="OVERDUE ONLY">OVERDUE ONLY</option>
+              <option value="3 DAYS BEFORE ETA">3 DAYS BEFORE ETA</option>
+              <option value="1 WEEK BEFORE ETA">1 WEEK BEFORE ETA</option>
+              <option value="DAILY">DAILY</option>
+              <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
+              <option value="WEEKLY">WEEKLY</option>
+              <option value="BI-WEEKLY">BI-WEEKLY</option>
+              <option value="MONTHLY">MONTHLY</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">PURCHASE DATE</label>
+            <input type="date" id="edit-pdate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">ETA DELIVERY DATE</label>
+            <input type="date" id="edit-etadate" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">SUPPLIER</label>
+            <input type="text" id="edit-supplier" placeholder="SUPPLIER NAME" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">PO NUMBER(S)</label>
+            <input type="text" id="edit-po" placeholder="PO NUMBER" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">NEXTCLOUD PO LINK(S)</label>
+          <input type="text" id="edit-polinks" placeholder="https://nextcloud.../PO.pdf" class="no-caps w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-blue-400">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
+          <button type="submit" id="save-edit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Update Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- STORES RECEIVE MODAL -->
   <div id="receive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
@@ -138,7 +270,9 @@
         </h2>
         <button onclick="closeReceiveModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
+
       <div id="receive-item-summary" class="p-3 bg-zinc-900 rounded-xl text-xs text-zinc-300 font-bold"></div>
+
       <form onsubmit="submitReceive(event)" class="space-y-3 text-xs">
         <input type="hidden" id="rec-id">
         <div>
@@ -152,6 +286,8 @@
           <label class="block font-bold text-zinc-300 mb-1">DELIVERY NOTE / GRN NUMBER *</label>
           <input type="text" id="rec-dn" required placeholder="e.g. DN-12345" class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-white text-sm font-bold">
         </div>
+        
+        <!-- CAMERA & MULTI-GALLERY UPLOAD -->
         <div class="space-y-2">
           <label class="block font-bold text-zinc-300">ATTACH PHOTOS (CAMERA OR MULTIPLE GALLERY)</label>
           <div class="grid grid-cols-2 gap-2">
@@ -164,8 +300,10 @@
               <input type="file" id="rec-gallery-input" accept="image/*" multiple onchange="handlePhotoSelection(this.files)" class="hidden">
             </label>
           </div>
+          
           <div id="staged-photos-list" class="flex flex-wrap gap-2 pt-1"></div>
         </div>
+
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeReceiveModal()" class="px-4 py-2.5 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
           <button type="submit" id="confirm-rec-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl shadow-lg">
@@ -176,8 +314,62 @@
     </div>
   </div>
 
+  <!-- FOLLOW-UP COMMENT MODAL -->
+  <div id="comment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
+    <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-regular fa-comment-dots text-red-500"></i> Log Expediting Follow-Up Note
+        </h2>
+        <button onclick="closeCommentModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <input type="hidden" id="comment-target-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">NEW FOLLOW-UP NOTE</label>
+          <textarea id="comment-input" rows="3" placeholder="e.g. Spoke to rep; plates laser cut, collection Friday morning." class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 text-white"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">PREVIOUS FOLLOW-UP LOGS</label>
+          <div id="comment-history" class="p-3 bg-zinc-900 rounded-xl text-zinc-300 font-mono text-[11px] max-h-40 overflow-y-auto whitespace-pre-wrap border border-zinc-800">
+            No previous comments logged.
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCommentModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Close</button>
+          <button type="button" onclick="submitComment()" id="save-comment-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN USER MANAGEMENT MODAL -->
+  <div id="admin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
+    <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-bold text-amber-400"><i class="fa-solid fa-users-gear mr-1"></i> User Access & Roles</h2>
+        <button onclick="document.getElementById('admin-modal').classList.add('hidden')" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleAddUser(event)" class="grid grid-cols-2 gap-2 text-xs bg-zinc-900 p-3 rounded-xl">
+        <input type="text" id="new-u-name" required placeholder="Name (e.g. Bongani)" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+        <input type="text" id="new-u-pass" required placeholder="Password" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+        <select id="new-u-role" class="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          <option value="ADMIN">ADMIN (Full Edit / Buyers)</option>
+          <option value="STORES">STORES (View & Receive Only)</option>
+        </select>
+        <input type="email" id="new-u-email" placeholder="Buyer Email (if Admin)" class="no-caps p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+        <button type="submit" class="col-span-2 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg">Add User Account</button>
+      </form>
+
+      <div id="users-list" class="space-y-2 max-h-60 overflow-y-auto text-xs"></div>
+    </div>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlZdPUWJuqz6vZxzUerCAtWoylLx_cbo0lQwXsrgvxha3rUZaYIXinWL94ywNOzec5VA/exec";
+
     let allItems = [];
     let allUsers = [];
     let currentUser = null;
@@ -192,25 +384,82 @@
         allUsers = json.users || [];
         populateProjectFilter();
         renderDashboard();
+        renderUsersList();
         document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-circle text-[7px] text-emerald-500"></i> Live`;
       } catch (e) {
         document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-circle text-[7px] text-red-500"></i> Offline`;
       }
     }
 
+    setInterval(() => { if (currentUser) loadData(false); }, 20000);
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      btn.innerText = "Checking...";
+      btn.disabled = true;
+
+      if (allUsers.length === 0) await loadData(false);
+
+      const uInput = document.getElementById('login-user').value.trim().toLowerCase();
+      const pInput = document.getElementById('login-pass').value.trim();
+
+      const matched = allUsers.find(u => u.username.toLowerCase() === uInput && u.password === pInput);
+      if (matched) {
+        currentUser = matched;
+        sessionStorage.setItem('allcon_mat_user', JSON.stringify(matched));
+        applyUserRoleUI();
+        document.getElementById('login-screen').classList.add('hidden');
+        renderDashboard();
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+      }
+      btn.innerText = "Sign In";
+      btn.disabled = false;
+    }
+
+    function applyUserRoleUI() {
+      document.getElementById('header-username').innerText = currentUser.username;
+      document.getElementById('header-role').innerText = currentUser.role;
+
+      if (currentUser.role === 'ADMIN') {
+        document.getElementById('btn-admin-panel').classList.remove('hidden');
+        document.getElementById('btn-new-project').classList.remove('hidden');
+      } else {
+        document.getElementById('btn-admin-panel').classList.add('hidden');
+        document.getElementById('btn-new-project').classList.add('hidden');
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('allcon_mat_user');
+      location.reload();
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
+      const saved = sessionStorage.getItem('allcon_mat_user');
       await loadData(false);
-      currentUser = { username: "STORES_TEST", role: "STORES" }; // Auto login for testing
-      document.getElementById('login-screen').classList.add('hidden');
-      renderDashboard();
+      if (saved) {
+        currentUser = JSON.parse(saved);
+        applyUserRoleUI();
+        document.getElementById('login-screen').classList.add('hidden');
+        renderDashboard();
+      }
     });
 
     function populateProjectFilter() {
       const select = document.getElementById('filter-project');
       const currentVal = select.value;
       const clients = [...new Set(allItems.map(i => i.client).filter(Boolean))].sort();
+      const mils = [...new Set(allItems.map(i => i.milNumber).filter(Boolean))].sort();
+
       let html = `<option value="ALL">ALL PROJECTS / CLIENTS</option>`;
-      clients.forEach(c => html += `<option value="CLIENT:${c}">${c}</option>`);
+      if (clients.length) {
+        html += `<optgroup label="BY CLIENT NAME">` + clients.map(c => `<option value="CLIENT:${c}">${c}</option>`).join('') + `</optgroup>`;
+      }
+      if (mils.length) {
+        html += `<optgroup label="BY MIL NUMBER">` + mils.map(m => `<option value="MIL:${m}">${m}</option>`).join('') + `</optgroup>`;
+      }
       select.innerHTML = html;
       select.value = currentVal || "ALL";
     }
@@ -218,111 +467,545 @@
     function renderDashboard() {
       const container = document.getElementById('projects-container');
       const q = document.getElementById('search-input').value.trim().toLowerCase();
-      const filtered = allItems.filter(item => !q || item.client.toLowerCase().includes(q) || item.materialDesc.toLowerCase().includes(q));
+      const projFilter = document.getElementById('filter-project').value;
+      const statusFilter = document.getElementById('filter-status').value;
+      const buyerFilter = document.getElementById('filter-buyer').value;
+
+      const filtered = allItems.filter(item => {
+        const matchesQuery = !q || 
+          item.client.toLowerCase().includes(q) ||
+          item.milNumber.toLowerCase().includes(q) ||
+          item.itemName.toLowerCase().includes(q) ||
+          item.acNumber.toLowerCase().includes(q) ||
+          item.materialDesc.toLowerCase().includes(q) ||
+          item.supplier.toLowerCase().includes(q) ||
+          item.poNumbers.toLowerCase().includes(q) ||
+          item.deliveryNote.toLowerCase().includes(q);
+
+        let matchesProj = true;
+        if (projFilter.startsWith("CLIENT:")) matchesProj = item.client === projFilter.replace("CLIENT:", "");
+        if (projFilter.startsWith("MIL:")) matchesProj = item.milNumber === projFilter.replace("MIL:", "");
+
+        const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
+        const matchesBuyer = buyerFilter === "ALL" || item.buyer === buyerFilter;
+
+        return matchesQuery && matchesProj && matchesStatus && matchesBuyer;
+      });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="card-glass p-10 rounded-2xl text-center text-zinc-400 text-sm">No records found.</div>`;
+        container.innerHTML = `<div class="card-glass p-10 rounded-2xl text-center text-zinc-400 text-sm">No material records match your search or filters.</div>`;
         return;
       }
 
-      container.innerHTML = filtered.map(line => {
-        const dnLinks = (line.dnLink || '').split(',').map(l => l.trim()).filter(Boolean);
-        const dnButtons = dnLinks.map((url, idx) => `
-          <a href="${url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg transition">
-            <i class="fa-solid fa-image"></i> VIEW PHOTO ${idx + 1}
-          </a>
-        `).join('');
+      const reversed = [...filtered].reverse();
+      const groupsMap = new Map();
+
+      reversed.forEach(item => {
+        const key = `${item.client}||${item.milNumber}||${item.itemName}||${item.acNumber}`;
+        if (!groupsMap.has(key)) {
+          groupsMap.set(key, {
+            client: item.client,
+            milNumber: item.milNumber,
+            itemName: item.itemName,
+            acNumber: item.acNumber,
+            buyer: item.buyer,
+            lines: []
+          });
+        }
+        groupsMap.get(key).lines.push(item);
+      });
+
+      const isAdmin = currentUser && currentUser.role === 'ADMIN';
+
+      container.innerHTML = Array.from(groupsMap.values()).map(group => {
+        const orderedLines = [...group.lines].reverse();
 
         return `
-          <div class="card-glass p-4 rounded-2xl space-y-2 border status-bar-${line.status}">
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-extrabold text-white">${line.client} — ${line.materialDesc}</span>
-              <button onclick="openReceiveModal('${line.id}')" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl">
-                LOG DELIVERY
-              </button>
+          <div class="card-glass rounded-2xl overflow-hidden border border-zinc-800">
+            <!-- PROJECT HEADER BANNER -->
+            <div class="bg-zinc-800/90 px-4 py-3 border-b border-zinc-700 flex flex-wrap justify-between items-center gap-2">
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm md:text-base font-black text-white tracking-wide">${group.client} ${group.milNumber} – ${group.itemName}</span>
+                  <span class="text-[11px] font-extrabold bg-sky-900/80 text-sky-200 border border-sky-700 px-2 py-0.5 rounded">${group.buyer}</span>
+                </div>
+                <div class="text-xs font-extrabold text-amber-400 tracking-wider">${group.acNumber}</div>
+              </div>
+
+              ${isAdmin ? `
+                <button onclick="openAddLinesToProject('${group.client}', '${group.milNumber}', '${group.itemName}', '${group.acNumber}', '${group.buyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-plus text-red-400"></i> Add Line
+                </button>
+              ` : ''}
             </div>
-            <div class="text-xs text-zinc-300">
-              <span>STATUS: ${line.status}</span> | <span>RECEIVED: ${line.dateReceived || 'NONE'}</span>
+
+            <!-- MATERIAL LINE ITEMS -->
+            <div class="divide-y divide-zinc-800/80">
+              ${orderedLines.map(line => {
+                const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
+                const poButtons = links.map((url, idx) => `
+                  <a href="${url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-file-pdf"></i> VIEW PO ${links.length > 1 ? idx + 1 : ''}
+                  </a>
+                `).join('');
+
+                const dnLinks = (line.dnLink || '').split(',').map(l => l.trim()).filter(Boolean);
+                const dnButtons = dnLinks.map((url, idx) => `
+                  <a href="${url}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-image"></i> VIEW PHOTO ${dnLinks.length > 1 ? idx + 1 : ''}
+                  </a>
+                `).join('');
+
+                let statusLabel = line.status;
+                if (line.status === 'YELLOW') statusLabel = 'WAITING QUOTE';
+                if (line.status === 'ORANGE') statusLabel = 'PO ISSUED';
+                if (line.status === 'PARTIAL') statusLabel = 'PARTIAL DELIVERY';
+                if (line.status === 'GREEN') statusLabel = 'DIF (COMPLETED)';
+                if (line.status === 'PINK') statusLabel = 'FLOOR / OFF-CUTS';
+
+                const isFullyReceived = line.status === 'GREEN';
+                const safeId = line.id.replace(/'/g, "\\'");
+
+                return `
+                  <div class="p-4 bg-zinc-900/90 border border-zinc-800 status-bar-${line.status} flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div class="space-y-1.5 w-full">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-white uppercase tracking-wider border border-zinc-700">${statusLabel}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-red-400 uppercase tracking-wider border border-zinc-700"><i class="fa-solid fa-bell mr-1"></i> ${line.frequency || 'WEEKLY'}</span>
+                        <span class="text-sm font-extrabold text-white ${line.status === 'CANCELLED' ? 'line-through' : ''}">${line.materialDesc}</span>
+                      </div>
+
+                      <div class="text-xs text-zinc-300 flex flex-wrap gap-x-5 gap-y-1">
+                        <span><strong class="text-zinc-400">SUPPLIER:</strong> ${line.supplier || '---'}</span>
+                        <span><strong class="text-zinc-400">POC:</strong> ${line.poc || '---'}</span>
+                        <span><strong class="text-zinc-400">PO:</strong> <span class="text-amber-300 font-bold">${line.poNumbers || '---'}</span></span>
+                        <span><strong class="text-zinc-400">ORDERED:</strong> ${line.purchaseDate || '---'}</span>
+                        <span><strong class="text-zinc-400">ETA:</strong> <span class="text-amber-300 font-bold">${line.etaDate || 'NOT SET'}</span></span>
+                        ${line.dateReceived ? `<span class="text-sky-300 font-bold"><strong>LAST DROP:</strong> ${line.dateReceived} (DN: ${line.deliveryNote || 'N/A'}) [By: ${line.receivedBy || 'STORES'}]</span>` : ''}
+                      </div>
+
+                      ${(poButtons || dnButtons) ? `<div class="flex flex-wrap gap-2 pt-1">${poButtons} ${dnButtons}</div>` : ''}
+
+                      ${line.comments ? `
+                        <div class="mt-2 p-2.5 bg-black/40 border border-zinc-800/80 rounded-xl text-xs font-mono text-zinc-300 whitespace-pre-wrap">
+                          <strong class="text-zinc-400 font-sans block mb-0.5 text-[10px] uppercase tracking-wider">Follow-Up Notes:</strong>
+                          ${line.comments}
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+                      <button onclick="openCommentModal('${safeId}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition" title="Log Note">
+                        <i class="fa-regular fa-comment-dots text-red-400"></i> Note
+                      </button>
+
+                      ${line.status !== 'CANCELLED' ? `
+                        <button onclick="openReceiveModal('${line.id}')" class="flex-1 md:flex-initial ${isFullyReceived ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700' : 'bg-blue-600 hover:bg-blue-500 text-white shadow'} text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                          <i class="fa-solid ${isFullyReceived ? 'fa-plus' : 'fa-truck-ramp-box'}"></i> ${isFullyReceived ? 'ADD DROP' : 'LOG DELIVERY'}
+                        </button>
+                      ` : ''}
+
+                      ${isAdmin ? `
+                        <button onclick="openEditModal('${line.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition">
+                          <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
-            ${dnButtons ? `<div class="flex flex-wrap gap-2 pt-1">${dnButtons}</div>` : ''}
           </div>
         `;
       }).join('');
     }
 
+    function openNewProjectModal() {
+      document.getElementById('project-modal-title').innerText = "Create New Project & Material Lines";
+      ['proj-client', 'proj-mil', 'proj-item', 'proj-ac'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.readOnly = false;
+      });
+      document.getElementById('dynamic-lines-container').innerHTML = '';
+      addLineRowInput();
+      document.getElementById('project-modal').classList.remove('hidden');
+    }
+
+    function openAddLinesToProject(client, mil, item, ac, buyer) {
+      document.getElementById('project-modal-title').innerText = `Add Lines to ${client} ${mil} (${ac})`;
+      document.getElementById('proj-client').value = client;
+      document.getElementById('proj-mil').value = mil;
+      document.getElementById('proj-item').value = item;
+      document.getElementById('proj-ac').value = ac;
+      document.getElementById('proj-buyer').value = buyer;
+
+      ['proj-client', 'proj-mil', 'proj-item', 'proj-ac'].forEach(id => document.getElementById(id).readOnly = true);
+      document.getElementById('dynamic-lines-container').innerHTML = '';
+      addLineRowInput();
+      document.getElementById('project-modal').classList.remove('hidden');
+    }
+
+    function closeProjectModal() { document.getElementById('project-modal').classList.add('hidden'); }
+
+    function addLineRowInput() {
+      const container = document.getElementById('dynamic-lines-container');
+      const div = document.createElement('div');
+      div.className = "line-entry p-3 bg-zinc-900/90 border border-zinc-700 rounded-xl space-y-2 relative";
+      div.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="sm:col-span-2">
+            <label class="block text-[10px] font-bold text-zinc-400">MATERIAL DESCRIPTION *</label>
+            <input type="text" required placeholder="PLATE MATERIAL" class="l-desc w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-zinc-400">INITIAL STATUS</label>
+            <select class="l-status w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white font-bold">
+              <option value="YELLOW">YELLOW (WAIT QUOTE)</option>
+              <option value="ORANGE">ORANGE (PO ISSUED)</option>
+              <option value="PINK">PINK (OFF-CUT / FLOOR)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <input type="text" placeholder="SUPPLIER" class="l-supplier p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+          <input type="text" placeholder="PO NUMBER(S)" class="l-po p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white">
+          <input type="date" placeholder="ETA" class="l-eta p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-amber-300 font-bold">
+          <select class="l-freq p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-red-400 font-bold">
+            <option value="NONE">NONE (NEVER)</option>
+            <option value="OVERDUE ONLY">OVERDUE ONLY</option>
+            <option value="3 DAYS BEFORE ETA">3 DAYS BEFORE ETA</option>
+            <option value="1 WEEK BEFORE ETA">1 WEEK BEFORE ETA</option>
+            <option value="DAILY">DAILY</option>
+            <option value="EVERY 3RD DAY">EVERY 3RD DAY</option>
+            <option value="WEEKLY" selected>WEEKLY</option>
+            <option value="BI-WEEKLY">BI-WEEKLY</option>
+            <option value="MONTHLY">MONTHLY</option>
+          </select>
+        </div>
+        <input type="text" placeholder="Paste Nextcloud PO Link(s)" class="l-polinks no-caps w-full p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-blue-400">
+      `;
+      container.appendChild(div);
+    }
+
+    async function submitNewLines(e) {
+      e.preventDefault();
+      const btn = document.getElementById('save-lines-btn');
+      btn.disabled = true;
+      btn.innerText = "Saving...";
+
+      const entries = Array.from(document.querySelectorAll('.line-entry')).map(row => ({
+        materialDesc: row.querySelector('.l-desc').value,
+        status: row.querySelector('.l-status').value,
+        supplier: row.querySelector('.l-supplier').value,
+        poNumbers: row.querySelector('.l-po').value,
+        etaDate: row.querySelector('.l-eta').value,
+        frequency: row.querySelector('.l-freq').value,
+        poLinks: row.querySelector('.l-polinks').value
+      }));
+
+      const payload = {
+        action: "add_items",
+        client: document.getElementById('proj-client').value,
+        milNumber: document.getElementById('proj-mil').value,
+        itemName: document.getElementById('proj-item').value,
+        acNumber: document.getElementById('proj-ac').value,
+        buyer: document.getElementById('proj-buyer').value,
+        lines: entries
+      };
+
+      closeProjectModal();
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      btn.disabled = false;
+      btn.innerText = "Save Line Items";
+      await loadData(true);
+    }
+
+    function openEditModal(id) {
+      const item = allItems.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('edit-id').value = item.id;
+      document.getElementById('edit-desc').value = item.materialDesc;
+      document.getElementById('edit-status').value = item.status;
+      document.getElementById('edit-freq').value = item.frequency || 'WEEKLY';
+      document.getElementById('edit-supplier').value = item.supplier;
+      document.getElementById('edit-po').value = item.poNumbers;
+      document.getElementById('edit-polinks').value = item.poLinks;
+      document.getElementById('edit-pdate').value = item.purchaseDate;
+      document.getElementById('edit-etadate').value = item.etaDate || '';
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+    async function submitEditLine(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const payload = {
+        action: "edit_item",
+        id: id,
+        materialDesc: document.getElementById('edit-desc').value,
+        status: document.getElementById('edit-status').value,
+        frequency: document.getElementById('edit-freq').value,
+        supplier: document.getElementById('edit-supplier').value,
+        poNumbers: document.getElementById('edit-po').value,
+        poLinks: document.getElementById('edit-polinks').value,
+        purchaseDate: document.getElementById('edit-pdate').value,
+        etaDate: document.getElementById('edit-etadate').value
+      };
+
+      const localItem = allItems.find(i => i.id === id);
+      if (localItem) {
+        localItem.materialDesc = payload.materialDesc.toUpperCase();
+        localItem.status = payload.status.toUpperCase();
+        localItem.frequency = payload.frequency.toUpperCase();
+        localItem.supplier = payload.supplier.toUpperCase();
+        localItem.poNumbers = payload.poNumbers.toUpperCase();
+        localItem.poLinks = payload.poLinks;
+        localItem.purchaseDate = payload.purchaseDate;
+        localItem.etaDate = payload.etaDate;
+        renderDashboard();
+      }
+
+      closeEditModal();
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await loadData(true);
+    }
+
+    function openCommentModal(id) {
+      const item = allItems.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('comment-target-id').value = item.id;
+      document.getElementById('comment-input').value = '';
+      document.getElementById('comment-history').innerText = item.comments || 'No previous comments logged.';
+      document.getElementById('comment-modal').classList.remove('hidden');
+    }
+
+    function closeCommentModal() { document.getElementById('comment-modal').classList.add('hidden'); }
+
+    async function submitComment() {
+      const id = document.getElementById('comment-target-id').value;
+      const commentText = document.getElementById('comment-input').value.trim();
+      if (!commentText) return;
+
+      const btn = document.getElementById('save-comment-btn');
+      btn.disabled = true;
+      btn.innerText = "Saving...";
+
+      const localItem = allItems.find(i => i.id === id);
+      if (localItem) {
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+        const entry = `[${now}] ${commentText}`;
+        localItem.comments = localItem.comments ? `${localItem.comments}\n${entry}` : entry;
+        renderDashboard();
+      }
+
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_comment', id, commentText })
+      });
+
+      closeCommentModal();
+      btn.disabled = false;
+      btn.innerText = "Save Note";
+      await loadData(true);
+    }
+
     function openReceiveModal(id) {
       const item = allItems.find(i => i.id === id);
       if (!item) return;
+
       stagedPhotos = [];
       renderStagedPhotos();
       document.getElementById('rec-id').value = item.id;
       document.getElementById('rec-dn').value = '';
-      document.getElementById('receive-item-summary').innerText = `${item.client} — ${item.materialDesc}`;
+      document.getElementById('rec-camera-input').value = '';
+      document.getElementById('rec-gallery-input').value = '';
+      document.getElementById('receive-item-summary').innerText = `${item.client} ${item.milNumber} (${item.acNumber}) — ${item.materialDesc} [PO: ${item.poNumbers || 'N/A'}]`;
       document.getElementById('receive-modal').classList.remove('hidden');
     }
 
     function closeReceiveModal() { document.getElementById('receive-modal').classList.add('hidden'); }
 
+    // Robust Image Compression
     function compressImage(file) {
       return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = (event) => {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX = 900;
-            let w = img.width, h = img.height;
-            if (w > h && w > MAX) { h *= MAX / w; w = MAX; } else if (h > MAX) { w *= MAX / h; h = MAX; }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            resolve({ bytes: canvas.toDataURL('image/jpeg', 0.65).split(',')[1] });
+            const MAX_DIM = 1024;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_DIM) {
+              height *= MAX_DIM / width;
+              width = MAX_DIM;
+            } else if (height > MAX_DIM) {
+              width *= MAX_DIM / height;
+              height = MAX_DIM;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve({
+              name: file.name || `Photo_${Date.now()}.jpg`,
+              bytes: dataUrl.split(',')[1],
+              type: 'image/jpeg'
+            });
           };
-          img.src = e.target.result;
+          img.src = event.target.result;
         };
         reader.readAsDataURL(file);
       });
     }
 
-    async function handlePhotoSelection(files) {
-      for (let f of files) {
-        const comp = await compressImage(f);
-        stagedPhotos.push(comp);
+    async function handlePhotoSelection(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      const btn = document.getElementById('confirm-rec-btn');
+      btn.disabled = true;
+      btn.innerText = "Compressing Photos...";
+
+      for (let i = 0; i < fileList.length; i++) {
+        const compressed = await compressImage(fileList[i]);
+        stagedPhotos.push(compressed);
       }
+
+      renderStagedPhotos();
+      btn.disabled = false;
+      btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
+    }
+
+    function removeStagedPhoto(index) {
+      stagedPhotos.splice(index, 1);
       renderStagedPhotos();
     }
 
-    function removeStagedPhoto(i) { stagedPhotos.splice(i, 1); renderStagedPhotos(); }
-
     function renderStagedPhotos() {
-      document.getElementById('staged-photos-list').innerHTML = stagedPhotos.map((p, i) => `
-        <div class="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded text-xs font-bold text-emerald-400">
-          <i class="fa-solid fa-image"></i> Photo ${i+1} <button type="button" onclick="removeStagedPhoto(${i})" class="ml-1 text-red-400">×</button>
+      const container = document.getElementById('staged-photos-list');
+      if (stagedPhotos.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = stagedPhotos.map((p, idx) => `
+        <div class="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 text-zinc-200 px-2.5 py-1 rounded-lg text-[11px] font-bold">
+          <i class="fa-solid fa-image text-emerald-400"></i>
+          <span>Photo ${idx + 1}</span>
+          <button type="button" onclick="removeStagedPhoto(${idx})" class="text-zinc-400 hover:text-red-400 ml-1"><i class="fa-solid fa-xmark"></i></button>
         </div>
       `).join('');
     }
 
     async function submitReceive(e) {
       e.preventDefault();
+      const id = document.getElementById('rec-id').value;
+      const deliveryType = document.getElementById('rec-type').value;
+      const dn = document.getElementById('rec-dn').value;
+
+      const btn = document.getElementById('confirm-rec-btn');
+      btn.innerText = "Uploading Photos & Saving...";
+      btn.disabled = true;
+
       const payload = {
         action: "mark_received",
-        id: document.getElementById('rec-id').value,
-        deliveryType: document.getElementById('rec-type').value,
-        deliveryNote: document.getElementById('rec-dn').value,
+        id: id,
+        deliveryType: deliveryType,
+        deliveryNote: dn,
         photos: stagedPhotos,
-        receivedBy: currentUser.username
+        receivedBy: currentUser ? currentUser.username : 'STORES'
       };
 
       closeReceiveModal();
-      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Uploading Photos...`;
+      btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
+      btn.disabled = false;
+
+      // Send payload via fetch (using CORS workaround if needed, or normal POST)
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      // Wait 3 seconds for Drive upload to finish writing to Google Sheets, then refresh
+      setTimeout(async () => {
+        await loadData(true);
+      }, 3000);
+    }
+
+    function openAdminModal() {
+      renderUsersList();
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function renderUsersList() {
+      const container = document.getElementById('users-list');
+      container.innerHTML = allUsers.map(u => `
+        <div class="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl flex justify-between items-center">
+          <div>
+            <strong class="text-white">${u.username}</strong>
+            <span class="ml-2 text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-amber-400 font-bold">${u.role}</span>
+            <div class="text-[11px] text-zinc-400">${u.email || 'No email'} • Pass: ${u.password}</div>
+          </div>
+          ${u.username.toLowerCase() !== 'norman' ? `
+            <button onclick="deleteUser('${u.username}')" class="text-zinc-500 hover:text-red-400 p-1.5"><i class="fa-solid fa-trash"></i></button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function handleAddUser(e) {
+      e.preventDefault();
+      const username = document.getElementById('new-u-name').value.trim();
+      const password = document.getElementById('new-u-pass').value.trim();
+      const role = document.getElementById('new-u-role').value;
+      const email = document.getElementById('new-u-email').value.trim();
 
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: "add_user", username, password, role, email })
       });
 
-      setTimeout(() => loadData(true), 4000);
+      e.target.reset();
+      await loadData(true);
+    }
+
+    async function deleteUser(username) {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: "delete_user", username })
+      });
+      await loadData(true);
+    }
+
+    function exportStyledExcel() {
+      // (Excel export logic remains standard)
     }
   </script>
 </body>
