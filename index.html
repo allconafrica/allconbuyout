@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0b0c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>ALLCON - Material Purchasing & Expediting Tracker</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23121215%22/><path d=%22M30 18h40a6 6 0 016 6v64a6 6 0 01-6 6H30a6 6 0 01-6-6V24a6 6 0 016-6z%22 fill=%22%23dc2626%22/><circle cx=%2250%22 cy=%2232%22 r=%226%22 fill=%22%23121215%22/><path d=%22M50 48a12 12 0 100 24 12 12 0 000-24zm0 20a8 8 0 110-16 8 8 0 010 16z%22 fill=%22%23ffffff%22/><rect x=%2236%22 y=%2276%22 width=%2228%22 height=%225%22 rx=%222.5%22 fill=%22%23ffffff%22 opacity=%220.8%22/></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -368,7 +368,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiWOEv85ezdK2AmFgMpsSoBe0kR4em_v9YtB6hGX6V-qHSvDQl_J_QvOIsolYlBEz90w/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxltXxgt8wmKqBUXD9r1317UY94rh2DlcMuIYHECyKGM_2MsOp7PU8AVkyeRWkPhEenpQ/exec";
 
     let allItems = [];
     let allUsers = [];
@@ -920,58 +920,15 @@
       const dn = document.getElementById('rec-dn').value;
 
       const btn = document.getElementById('confirm-rec-btn');
-      btn.innerText = "Uploading to Nextcloud...";
+      btn.innerText = "Uploading & Saving...";
       btn.disabled = true;
-
-      // Nextcloud Public Share WebDAV Upload Endpoint (Token: AxpSmyLTcgrzS76)
-      const shareToken = "AxpSmyLTcgrzS76";
-      const shareDavBaseUrl = "https://noa.it.tabdigital.cloud/public.php/webdav/";
-      const shareViewUrl = "https://noa.it.tabdigital.cloud/s/AxpSmyLTcgrzS76";
-      const authHeader = "Basic " + btoa(shareToken + ":");
-
-      let uploadedPhotoUrls = [];
-
-      for (let i = 0; i < stagedPhotos.length; i++) {
-        try {
-          const photo = stagedPhotos[i];
-          const fileName = `DN_${id}_${Date.now()}_${i+1}.jpg`;
-          const targetUrl = shareDavBaseUrl + fileName;
-
-          const byteCharacters = atob(photo.bytes);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let b = 0; b < byteCharacters.length; b++) {
-            byteNumbers[b] = byteCharacters.charCodeAt(b);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'image/jpeg' });
-
-          const putRes = await fetch(targetUrl, {
-            method: 'PUT',
-            headers: {
-              'Authorization': authHeader,
-              'Content-Type': 'image/jpeg'
-            },
-            body: blob
-          });
-
-          if (putRes.ok || putRes.status === 201 || putRes.status === 204) {
-            uploadedPhotoUrls.push(shareViewUrl);
-          } else {
-            console.error("Nextcloud upload failed with status:", putRes.status);
-          }
-        } catch (uploadErr) {
-          console.error("Nextcloud upload blocked or failed:", uploadErr);
-        }
-      }
-
-      btn.innerText = "Saving to Google Sheet...";
 
       const payload = {
         action: "mark_received",
         id: id,
         deliveryType: deliveryType,
         deliveryNote: dn,
-        photoUrls: uploadedPhotoUrls,
+        photos: stagedPhotos,
         receivedBy: currentUser ? currentUser.username : 'STORES'
       };
 
@@ -985,7 +942,7 @@
           body: JSON.stringify(payload)
         });
       } catch (err) {
-        console.error("Sheet submission error:", err);
+        console.error("Submission error:", err);
       }
 
       btn.innerText = "SUBMIT DELIVERY & NOTIFY BUYER";
