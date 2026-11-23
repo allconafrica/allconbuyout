@@ -138,6 +138,54 @@
 
   </main>
 
+  <!-- EDIT PROJECT DETAILS MODAL -->
+  <div id="project-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3">
+    <div class="card-glass rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-folder-pen text-amber-400"></i> Edit Project Details
+        </h2>
+        <button onclick="closeProjectEditModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="submitEditProject(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">CLIENT / PROJECT NAME *</label>
+            <input type="text" id="edit-proj-client" required class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">MIL NO. *</label>
+            <input type="text" id="edit-proj-mil" required class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-zinc-400 mb-1">ITEM NAME *</label>
+          <input type="text" id="edit-proj-item" required class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">AC NO. *</label>
+            <input type="text" id="edit-proj-ac" required class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-400 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-zinc-400 mb-1">BUYER</label>
+            <select id="edit-proj-buyer" class="w-full p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-amber-400 font-bold">
+              <option value="NORMAN">NORMAN</option>
+              <option value="NORLENE">NORLENE</option>
+            </select>
+          </div>
+        </div>
+        <p class="text-[11px] text-zinc-400">Updates all material line items under this project group.</p>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+          <button type="button" onclick="closeProjectEditModal()" class="px-4 py-2 bg-zinc-800 text-white rounded-xl font-bold">Cancel</button>
+          <button type="submit" id="save-proj-edit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow">Save Project Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- NEW PROJECT / ADD LINES MODAL -->
   <div id="project-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3 overflow-y-auto">
     <div class="card-glass rounded-2xl max-w-2xl w-full p-5 my-auto space-y-4">
@@ -379,6 +427,7 @@
     let allUsers = [];
     let currentUser = null;
     let stagedPhotos = [];
+    let editingProjectSnapshot = null;
 
     function parseCommentLines(raw) {
       return String(raw || "")
@@ -546,6 +595,11 @@
 
       container.innerHTML = Array.from(groupsMap.values()).map(group => {
         const orderedLines = [...group.lines].reverse();
+        const eClient = escapeHtml(group.client);
+        const eMil = escapeHtml(group.milNumber);
+        const eItem = escapeHtml(group.itemName);
+        const eAc = escapeHtml(group.acNumber);
+        const eBuyer = escapeHtml(group.buyer);
 
         return `
           <div class="card-glass rounded-2xl overflow-hidden border border-zinc-800">
@@ -553,16 +607,21 @@
             <div class="bg-zinc-800/90 px-4 py-3 border-b border-zinc-700 flex flex-wrap justify-between items-center gap-2">
               <div class="space-y-0.5">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-sm md:text-base font-black text-white tracking-wide">${escapeHtml(group.client)} ${escapeHtml(group.milNumber)} – ${escapeHtml(group.itemName)}</span>
-                  <span class="text-[11px] font-extrabold bg-sky-900/80 text-sky-200 border border-sky-700 px-2 py-0.5 rounded">${escapeHtml(group.buyer)}</span>
+                  <span class="text-sm md:text-base font-black text-white tracking-wide">${eClient} ${eMil} – ${eItem}</span>
+                  <span class="text-[11px] font-extrabold bg-sky-900/80 text-sky-200 border border-sky-700 px-2 py-0.5 rounded">${eBuyer}</span>
                 </div>
-                <div class="text-xs font-extrabold text-amber-400 tracking-wider">${escapeHtml(group.acNumber)}</div>
+                <div class="text-xs font-extrabold text-amber-400 tracking-wider">${eAc}</div>
               </div>
 
               ${isAdmin ? `
-                <button onclick="openAddLinesToProject('${escapeHtml(group.client)}', '${escapeHtml(group.milNumber)}', '${escapeHtml(group.itemName)}', '${escapeHtml(group.acNumber)}', '${escapeHtml(group.buyer)}')" class="bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-plus text-red-400"></i> Add Line
-                </button>
+                <div class="flex items-center gap-2">
+                  <button onclick="openEditProjectModal('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen"></i> Edit Project
+                  </button>
+                  <button onclick="openAddLinesToProject('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus text-red-400"></i> Add Line
+                  </button>
+                </div>
               ` : ''}
             </div>
 
@@ -656,6 +715,77 @@
           </div>
         `;
       }).join('');
+    }
+
+    function openEditProjectModal(client, mil, item, ac, buyer) {
+      editingProjectSnapshot = { client, milNumber: mil, itemName: item, acNumber: ac, buyer };
+      document.getElementById('edit-proj-client').value = client;
+      document.getElementById('edit-proj-mil').value = mil;
+      document.getElementById('edit-proj-item').value = item;
+      document.getElementById('edit-proj-ac').value = ac;
+      document.getElementById('edit-proj-buyer').value = buyer || 'NORMAN';
+      document.getElementById('project-edit-modal').classList.remove('hidden');
+    }
+
+    function closeProjectEditModal() {
+      document.getElementById('project-edit-modal').classList.add('hidden');
+      editingProjectSnapshot = null;
+    }
+
+    async function submitEditProject(e) {
+      e.preventDefault();
+      if (!editingProjectSnapshot) return;
+
+      const btn = document.getElementById('save-proj-edit-btn');
+      btn.disabled = true;
+      btn.innerText = "Saving...";
+
+      const payload = {
+        action: "edit_project",
+        oldClient: editingProjectSnapshot.client,
+        oldMilNumber: editingProjectSnapshot.milNumber,
+        oldItemName: editingProjectSnapshot.itemName,
+        oldAcNumber: editingProjectSnapshot.acNumber,
+        client: document.getElementById('edit-proj-client').value.trim().toUpperCase(),
+        milNumber: document.getElementById('edit-proj-mil').value.trim().toUpperCase(),
+        itemName: document.getElementById('edit-proj-item').value.trim().toUpperCase(),
+        acNumber: document.getElementById('edit-proj-ac').value.trim().toUpperCase(),
+        buyer: document.getElementById('edit-proj-buyer').value.trim().toUpperCase()
+      };
+
+      allItems.forEach(item => {
+        if (
+          item.client === editingProjectSnapshot.client &&
+          item.milNumber === editingProjectSnapshot.milNumber &&
+          item.itemName === editingProjectSnapshot.itemName &&
+          item.acNumber === editingProjectSnapshot.acNumber
+        ) {
+          item.client = payload.client;
+          item.milNumber = payload.milNumber;
+          item.itemName = payload.itemName;
+          item.acNumber = payload.acNumber;
+          item.buyer = payload.buyer;
+        }
+      });
+
+      populateProjectFilter();
+      renderDashboard();
+      closeProjectEditModal();
+
+      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Syncing...`;
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error("Edit project error:", err);
+      }
+
+      btn.disabled = false;
+      btn.innerText = "Save Project Details";
+      await loadData(true);
     }
 
     function openNewProjectModal() {
