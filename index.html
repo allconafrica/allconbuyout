@@ -453,7 +453,7 @@
     async function loadData(manual = false) {
       if (manual) document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Syncing...`;
       try {
-        const res = await fetch(SCRIPT_URL);
+        const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
         const json = await res.json();
         allItems = json.items || [];
         allUsers = json.users || [];
