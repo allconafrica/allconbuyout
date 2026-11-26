@@ -428,6 +428,7 @@
     let currentUser = null;
     let stagedPhotos = [];
     let editingProjectSnapshot = null;
+    let isMutating = false;
 
     function parseCommentLines(raw) {
       return String(raw || "")
@@ -466,7 +467,7 @@
       }
     }
 
-    setInterval(() => { if (currentUser) loadData(false); }, 20000);
+    setInterval(() => { if (currentUser && !isMutating) loadData(false); }, 20000);
 
     async function handleLogin(e) {
       e.preventDefault();
@@ -703,8 +704,11 @@
                       ` : ''}
 
                       ${isAdmin ? `
-                        <button onclick="openEditModal('${line.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition">
+                        <button onclick="openEditModal('${safeId}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition">
                           <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button type="button" onclick="deleteLineItem('${safeId}')" class="bg-zinc-800 hover:bg-red-950 text-zinc-400 hover:text-red-400 text-xs font-bold px-3 py-2.5 rounded-xl border border-zinc-700 transition" title="Delete Duplicate / Unwanted Line">
+                          <i class="fa-solid fa-trash-can"></i>
                         </button>
                       ` : ''}
                     </div>
@@ -915,6 +919,13 @@
 
     async function submitEditLine(e) {
       e.preventDefault();
+      if (currentUser?.role !== 'ADMIN') return;
+
+      const btn = document.getElementById('save-edit-btn');
+      btn.disabled = true;
+      btn.innerText = "Saving...";
+      isMutating = true;
+
       const id = document.getElementById('edit-id').value;
       const payload = {
         action: "edit_item",
@@ -931,24 +942,70 @@
 
       const localItem = allItems.find(i => i.id === id);
       if (localItem) {
-        localItem.materialDesc = payload.materialDesc.toUpperCase();
-        localItem.status = payload.status.toUpperCase();
-        localItem.frequency = payload.frequency.toUpperCase();
-        localItem.supplier = payload.supplier.toUpperCase();
-        localItem.poNumbers = payload.poNumbers.toUpperCase();
-        localItem.poLinks = payload.poLinks;
+        localItem.materialDesc = payload.materialDesc.toUpperCase().trim();
+        localItem.status = payload.status.toUpperCase().trim();
+        localItem.frequency = payload.frequency.toUpperCase().trim();
+        localItem.supplier = payload.supplier.toUpperCase().trim();
+        localItem.poNumbers = payload.poNumbers.toUpperCase().trim();
+        localItem.poLinks = payload.poLinks.trim();
         localItem.purchaseDate = payload.purchaseDate;
         localItem.etaDate = payload.etaDate;
         renderDashboard();
       }
 
       closeEditModal();
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      await loadData(true);
+      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Syncing...`;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const resultJson = await res.json();
+        if (resultJson.result !== 'success') {
+          alert("Could not save changes to sheet (" + (resultJson.result || resultJson.error || "unknown") + ").");
+        }
+      } catch (err) {
+        console.error("Edit line error:", err);
+        alert("Network error while saving line edit.");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Update Record";
+        isMutating = false;
+        await loadData(true);
+      }
+    }
+
+    async function deleteLineItem(id) {
+      if (currentUser?.role !== 'ADMIN') return;
+      const item = allItems.find(i => i.id === id);
+      const label = item ? `${item.materialDesc || 'this line'}` : 'this line';
+      if (!confirm(`Delete "${label}" permanently?`)) return;
+
+      isMutating = true;
+      allItems = allItems.filter(i => i.id !== id);
+      populateProjectFilter();
+      renderDashboard();
+      document.getElementById('sync-indicator').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Syncing...`;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'delete_item', id })
+        });
+        const resultJson = await res.json();
+        if (resultJson.result !== 'success') {
+          alert("Could not delete line from sheet (" + (resultJson.result || resultJson.error || "unknown") + ").");
+        }
+      } catch (err) {
+        console.error("Delete line error:", err);
+        alert("Network error while deleting line.");
+      } finally {
+        isMutating = false;
+        await loadData(true);
+      }
     }
 
     function renderModalCommentHistory(item) {
