@@ -98,7 +98,7 @@
         <button onclick="document.getElementById('search-input').value=''; renderDashboard();" class="absolute right-3 top-3 text-zinc-400 hover:text-white text-xs px-2 py-1 bg-zinc-800 rounded-lg">CLEAR</button>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
         <select id="filter-project" onchange="renderDashboard()" class="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white font-bold">
           <option value="ALL">ALL PROJECTS / CLIENTS</option>
         </select>
@@ -118,6 +118,9 @@
         </select>
         <button onclick="loadData(true)" class="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 font-bold flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-rotate"></i> REFRESH DATA
+        </button>
+        <button id="btn-toggle-all-projects" onclick="toggleAllProjects()" class="col-span-2 md:col-span-1 p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-amber-400 font-bold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-angles-down"></i> EXPAND ALL
         </button>
       </div>
 
@@ -429,6 +432,7 @@
     let stagedPhotos = [];
     let editingProjectSnapshot = null;
     let isMutating = false;
+    let expandedProjects = new Set();
 
     function parseCommentLines(raw) {
       return String(raw || "")
@@ -570,6 +574,7 @@
       });
 
       if (filtered.length === 0) {
+        updateToggleAllButton([]);
         container.innerHTML = `<div class="card-glass p-10 rounded-2xl text-center text-zinc-400 text-sm">No material records match your search or filters.</div>`;
         return;
       }
@@ -594,8 +599,13 @@
 
       const isAdmin = currentUser && currentUser.role === 'ADMIN';
 
-      container.innerHTML = Array.from(groupsMap.values()).map(group => {
+      const groupList = Array.from(groupsMap.entries());
+      updateToggleAllButton(groupList.map(([k]) => k));
+
+      container.innerHTML = groupList.map(([groupKey, group]) => {
         const orderedLines = [...group.lines].reverse();
+        const isExpanded = expandedProjects.has(groupKey);
+        const safeGroupKey = groupKey.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const eClient = escapeHtml(group.client);
         const eMil = escapeHtml(group.milNumber);
         const eItem = escapeHtml(group.itemName);
@@ -605,29 +615,33 @@
         return `
           <div class="card-glass rounded-2xl overflow-hidden border border-zinc-800">
             <!-- PROJECT HEADER BANNER -->
-            <div class="bg-zinc-800/90 px-4 py-3 border-b border-zinc-700 flex flex-wrap justify-between items-center gap-2">
+            <div onclick="toggleProjectGroup('${safeGroupKey}')" class="cursor-pointer select-none bg-zinc-800/90 hover:bg-zinc-800 px-4 py-3 ${isExpanded ? 'border-b border-zinc-700' : ''} flex flex-wrap justify-between items-center gap-2 transition">
               <div class="space-y-0.5">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-sm md:text-base font-black text-white tracking-wide">${eClient} ${eMil} – ${eItem}</span>
                   <span class="text-[11px] font-extrabold bg-sky-900/80 text-sky-200 border border-sky-700 px-2 py-0.5 rounded">${eBuyer}</span>
+                  <span class="text-[11px] font-bold bg-zinc-900/90 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded">${orderedLines.length} line${orderedLines.length === 1 ? '' : 's'}</span>
                 </div>
                 <div class="text-xs font-extrabold text-amber-400 tracking-wider">${eAc}</div>
               </div>
 
-              ${isAdmin ? `
-                <div class="flex items-center gap-2">
-                  <button onclick="openEditProjectModal('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
+              <div class="flex items-center gap-2 ml-auto">
+                ${isAdmin ? `
+                  <button type="button" onclick="event.stopPropagation(); openEditProjectModal('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-pen"></i> Edit Project
                   </button>
-                  <button onclick="openAddLinesToProject('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
+                  <button type="button" onclick="event.stopPropagation(); openAddLinesToProject('${eClient}', '${eMil}', '${eItem}', '${eAc}', '${eBuyer}')" class="bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-zinc-600 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-plus text-red-400"></i> Add Line
                   </button>
-                </div>
-              ` : ''}
+                ` : ''}
+                <button type="button" onclick="event.stopPropagation(); toggleProjectGroup('${safeGroupKey}')" class="bg-zinc-700/80 hover:bg-zinc-600 text-zinc-200 text-xs font-bold w-8 h-8 rounded-xl border border-zinc-600 transition flex items-center justify-center" title="${isExpanded ? 'Collapse Project' : 'Expand Project'}">
+                  <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                </button>
+              </div>
             </div>
 
             <!-- MATERIAL LINE ITEMS -->
-            <div class="divide-y divide-zinc-800/80">
+            <div class="divide-y divide-zinc-800/80 ${isExpanded ? '' : 'hidden'}">
               ${orderedLines.map(line => {
                 const links = (line.poLinks || '').split(',').map(l => l.trim()).filter(Boolean);
                 const poButtons = links.map((url, idx) => `
@@ -719,6 +733,72 @@
           </div>
         `;
       }).join('');
+    }
+
+
+    function getVisibleProjectKeys() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const projFilter = document.getElementById('filter-project').value;
+      const statusFilter = document.getElementById('filter-status').value;
+      const buyerFilter = document.getElementById('filter-buyer').value;
+
+      const keys = new Set();
+      allItems.forEach(item => {
+        const matchesQuery = !q ||
+          item.client.toLowerCase().includes(q) ||
+          item.milNumber.toLowerCase().includes(q) ||
+          item.itemName.toLowerCase().includes(q) ||
+          item.acNumber.toLowerCase().includes(q) ||
+          item.materialDesc.toLowerCase().includes(q) ||
+          item.supplier.toLowerCase().includes(q) ||
+          item.poNumbers.toLowerCase().includes(q) ||
+          item.deliveryNote.toLowerCase().includes(q) ||
+          item.comments.toLowerCase().includes(q);
+
+        let matchesProj = true;
+        if (projFilter.startsWith("CLIENT:")) matchesProj = item.client === projFilter.replace("CLIENT:", "");
+        if (projFilter.startsWith("MIL:")) matchesProj = item.milNumber === projFilter.replace("MIL:", "");
+
+        const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
+        const matchesBuyer = buyerFilter === "ALL" || item.buyer === buyerFilter;
+
+        if (matchesQuery && matchesProj && matchesStatus && matchesBuyer) {
+          keys.add(`${item.client}||${item.milNumber}||${item.itemName}||${item.acNumber}`);
+        }
+      });
+      return Array.from(keys);
+    }
+
+    function updateToggleAllButton(visibleKeys) {
+      const btn = document.getElementById('btn-toggle-all-projects');
+      if (!btn) return;
+      const allExpanded = visibleKeys.length > 0 && visibleKeys.every(k => expandedProjects.has(k));
+      if (allExpanded) {
+        btn.innerHTML = `<i class="fa-solid fa-angles-up"></i> COLLAPSE ALL`;
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-angles-down"></i> EXPAND ALL`;
+      }
+    }
+
+    function toggleProjectGroup(groupKey) {
+      if (expandedProjects.has(groupKey)) {
+        expandedProjects.delete(groupKey);
+      } else {
+        expandedProjects.add(groupKey);
+      }
+      renderDashboard();
+    }
+
+    function toggleAllProjects() {
+      const visibleKeys = getVisibleProjectKeys();
+      if (visibleKeys.length === 0) return;
+      const allExpanded = visibleKeys.every(k => expandedProjects.has(k));
+      if (allExpanded) {
+        visibleKeys.forEach(k => expandedProjects.delete(k));
+      } else {
+        visibleKeys.forEach(k => expandedProjects.add(k));
+      }
+      renderDashboard();
     }
 
     function openEditProjectModal(client, mil, item, ac, buyer) {
